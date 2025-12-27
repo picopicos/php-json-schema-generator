@@ -1,0 +1,14 @@
+services:
+  php:
+    build:
+      context: .
+      target: runner
+      args:
+        PHP_VERSION: 8.5.1
+    entrypoint: ["php"]
+    volumes:
+      - .:/app
+
+  composer:
+    extends: php
+    entrypoint: ["composer"]
