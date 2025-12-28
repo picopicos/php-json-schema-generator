@@ -6,7 +6,7 @@
 
 ## Project Mission
 **"PHPStan-First JSON Schema Generator"**
-Build a library that generates JSON Schema (Draft 2020-12) compatible with OpenAPI 3.1 directly from PHP classes (DTOs) using Static Analysis (AOT).
+Build a library that generates JSON Schema compatible with OpenAPI 3.1 directly from PHP classes (DTOs) using Static Analysis (AOT).
 **Runtime reflection (`new ReflectionClass`) is strictly prohibited.**
 
 ## Tech Stack & Architecture
@@ -35,8 +35,13 @@ Build a library that generates JSON Schema (Draft 2020-12) compatible with OpenA
 
 ## Pull Request Workflow
 1.  **Template**: Always use `.github/pull_request_template.md` when creating a PR.
-2.  **Synchronization**: Every time you push new changes to an existing PR, update the PR description using `gh pr edit` to reflect the latest state (Purpose, Details, Verification).
-3.  **Context**: Ensure the PR body clearly explains the "Why" (Purpose) and "How" (Details).
+2.  **Metadata**: Set **Assignee** (@me), **Labels** (e.g., `enhancement`, `documentation`), and **Milestone** (e.g., `0.1.0`) for every PR.
+3.  **Synchronization**: Every time you push new changes to an existing PR, update the PR description using `gh pr edit` to reflect the latest state (Purpose, Details, Verification).
+4.  **Context**: Ensure the PR body clearly explains the "Why" (Purpose) and "How" (Details).
+
+## Documentation Maintenance
+- **Keep Updated**: Whenever the architecture or roadmap changes, update `docs/ARCHITECTURE.md` and `docs/ROADMAP.md` within the same PR.
+- **Accuracy**: These documents must reflect the *current* state of the codebase and project goals.
 
 ## Environment
 - **Run Tests:** `./bin/composer test`
