@@ -1,5 +1,5 @@
 <?php
-$finder = (new PhpCsFixer\Finder())->in(__DIR__)->exclude('var');
+$finder = (new PhpCsFixer\Finder())->in(__DIR__)->exclude(['var', 'tmp', 'vendor']);
 return (new PhpCsFixer\Config())
     ->setParallelConfig(PhpCsFixer\Runner\Parallel\ParallelConfigFactory::detect())
     ->setRules([
