@@ -20,11 +20,27 @@ jobs:
         with:
           php-version: '8.5'
           tools: composer:v2, cs2pr
+          coverage: xdebug
       - name: Install dependencies
         run: composer install --prefer-dist --no-progress --ignore-platform-req=php
       - name: Check code format
         run: composer format -- --dry-run --format=checkstyle | cs2pr
       - name: Static Analysis
         run: composer lint -- --error-format=github
-      - name: Run Tests
-        run: composer test
+      - name: Run Tests with Coverage
+        run: composer test:coverage
+      
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
+          fail_ci_if_error: true
+          verbose: true
+
+      - name: Upload test results to Codecov
+        if: ${{ !cancelled() }}
+        uses: codecov/test-results-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./junit.xml

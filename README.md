@@ -12,6 +12,9 @@
     <a href="https://github.com/picopicos/php-json-schema-generator/actions/workflows/ci.yml">
       <img src="https://github.com/picopicos/php-json-schema-generator/actions/workflows/ci.yml/badge.svg" alt="CI">
     </a>
+    <a href="https://codecov.io/gh/picopicos/php-json-schema-generator">
+      <img src="https://codecov.io/gh/picopicos/php-json-schema-generator/graph/badge.svg?token=YVHC1U9JXC" alt="Codecov"/>
+    </a>
     <img src="https://img.shields.io/badge/php-%5E8.5-777bb4.svg" alt="PHP Version">
     <a href="https://github.com/picopicos/php-json-schema-generator/blob/main/LICENSE">
       <img src="https://img.shields.io/github/license/picopicos/php-json-schema-generator" alt="License">
