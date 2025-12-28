@@ -1,4 +1,4 @@
-# Roadmap: PHPStan-First JSON Schema Generator
+# Roadmap: PHP JSON Schema Generator
 
 ## Phase 1: Foundation (Completed) ✅
 - [x] Project Skeleton (Git, License).
@@ -7,19 +7,20 @@
 ## Phase 2: Development Environment (Completed) ✅
 - [x] PHP 8.5 Environment.
 - [x] Docker & Buildx Bake Integration.
-- [x] CI/CD Pipeline (GitHub Actions).
-- [x] Strict Static Analysis (PHPStan Level Max).
+- [x] CI/CD Pipeline (GitHub Actions) with Parallel Jobs.
+- [x] Strict Static Analysis (PHPStan Level Max + Bleeding Edge).
+- [x] Code Coverage & Test Analytics (Codecov).
 
-## Phase 3: MVP - Primitive Types (In Progress) 🚧
-- [ ] `string`, `int`, `bool`, `float` type mapping.
-- [ ] Core logic using `BetterReflection`.
-- *Note: Implementation is pending in PR #3.*
+## Phase 3: MVP - PHPStan Native Architecture (Completed) ✅
+- [x] Pivot to PHPStan Extension (Collector + Rule) architecture.
+- [x] `string`, `int`, `bool`, `float` type mapping.
+- [x] Support for Constructor Property Promotion.
 
-## Phase 4: Integer Constraints
-- [ ] Support `int<min, max>` via `phpstan/phpdoc-parser`.
-- [ ] Map to `minimum` and `maximum` in JSON Schema.
+## Phase 4: Integer Constraints (Completed) ✅
+- [x] Support `int<min, max>` via PHPStan's `IntegerRangeType`.
+- [x] Map to `minimum` and `maximum` in JSON Schema.
 
-## Phase 5: String Constraints
+## Phase 5: String Constraints (Next) 🚧
 - [ ] Support `non-empty-string` -> `minLength: 1`.
 - [ ] Support string formats (e.g. email, uuid) via Attributes.
 
