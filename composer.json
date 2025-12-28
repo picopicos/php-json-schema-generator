@@ -24,6 +24,7 @@
     },
     "scripts": {
         "test": "phpunit --colors=always",
+        "test:coverage": "XDEBUG_MODE=coverage phpunit --colors=always --coverage-clover coverage.xml",
         "test:filter": "phpunit --colors=always --filter",
         "lint": "phpstan analyse --memory-limit=2G",
         "format": "php-cs-fixer fix --allow-risky=yes"

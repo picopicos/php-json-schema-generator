@@ -3,3 +3,5 @@
 /tmp/
 .phpunit.cache
 .php-cs-fixer.cache
+coverage.xml
+junit.xml
