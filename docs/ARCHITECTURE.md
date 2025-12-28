@@ -2,57 +2,60 @@
 
 ## 1. Core Concept
 
-This library generates JSON Schema directly from PHP code by performing static analysis on type hints and DocBlocks. It is designed to bridge the gap between PHPStan's advanced type system and standard JSON Schema.
+This library generates JSON Schema directly from PHP code by leveraging **PHPStan's native type inference engine**.
 
 ### Key Principles
-- **Static Analysis (AOT)**: Uses static analysis to generate schemas. No code is executed during generation, ensuring safety and performance. Runtime reflection (`ReflectionClass`) is strictly prohibited.
-- **PHPStan Compatibility**: Respects PHPStan's type system. Types like `int<1, 10>` or `non-empty-string` are converted to JSON Schema validation constraints (`minimum`, `minLength`).
-- **Standard Compliance**: Output is compliant with standard JSON Schema and OpenAPI 3.1.
+- **PHPStan Native**: We run as a PHPStan extension to ensure 100% compatibility with its type system.
+- **No Runtime Reflection**: We strictly avoid PHP's native reflection (`new ReflectionClass`). All information is extracted via static analysis (AOT), ensuring that user classes are never instantiated or even loaded during generation.
+- **Separation of Concerns**: Analysis, Mapping, Generation, and I/O are strictly separated.
+- **Pure Logic**: The core `SchemaGenerator` is a pure function with no side effects.
 
 ## 2. Component Architecture
 
-The generation process follows a linear pipeline:
-
 ```mermaid
-graph LR
-    A[PHP Class] -->|BetterReflection| B(Class Structure)
-    B -->|PHPDoc Parser| C(AST Type Nodes)
-    C -->|Mapper| D(JSON Schema Array)
-    D -->|Encoder| E[JSON File]
+sequenceDiagram
+    participant Source as PHP Code
+    participant PHPStan as PHPStan Engine
+    participant Collector as PropertyCollector
+    participant Mapper as TypeMapper
+    participant Rule as SchemaAggregatorRule
+    participant Gen as SchemaGenerator
+    participant Writer as FileWriter
+
+    PHPStan->>Source: Analyse Files (Static Only)
+    loop For Each Property
+        PHPStan->>Collector: Visit ClassPropertyNode
+        Collector->>Mapper: map(Node, Scope)
+        Mapper->>Collector: return PropertyDTO
+        Collector->>PHPStan: return PropertyDTO
+    end
+    
+    PHPStan->>Rule: Process CollectedDataNode (All DTOs)
+    Rule->>Gen: generate(PropertyDTOs[])
+    Gen->>Rule: return SchemaArray (Pure)
+    Rule->>Writer: write(SchemaArray)
 ```
 
-### 2.1. Reflector (`Roave\BetterReflection`)
-The entry point. It reads PHP files and constructs an object model of classes, properties, and methods without loading them into PHP's memory.
+### 2.1. TypeMapper (`Service`)
+- **Responsibility**: The Heavy Lifter. Converts complex `PHPStan\Type` objects into framework-agnostic DTOs.
+- **Logic**: Handles `IntegerRangeType`, `UnionType`, `Generics`, etc.
 
-### 2.2. Type Parser (`phpstan/phpdoc-parser`)
-Extracts rich type information from DocBlocks.
-- **Input**: `/** @var int<1, 10> $age */`
-- **Output**: `IntegerRangeTypeNode(min: 1, max: 10)`
+### 2.2. PropertyCollector (`PHPStan Collector`)
+- **Responsibility**: Interface. Delegates mapping to `TypeMapper` and returns the resulting DTO to PHPStan.
 
-### 2.3. Schema Generator (Mapper)
-The core logic layer. It traverses the class structure and maps PHP types to JSON Schema keywords.
-- `int` -> `type: integer`
-- `string` -> `type: string`
-- `?string` -> `type: ["string", "null"]`
-- `MyClass` -> `$ref: "#/$defs/MyClass"`
+### 2.3. SchemaAggregatorRule (`PHPStan Rule / Controller`)
+- **Responsibility**: Orchestration. Aggregates data and handles I/O.
 
-## 3. Development Workflow
+### 2.4. SchemaGenerator (`Service`)
+- **Responsibility**: **Pure Function**. Converts DTOs into JSON Schema structure. No PHPStan or I/O dependencies.
 
-We adopt a **Test-Driven Development (TDD)** approach using Fixtures.
+## 3. Why this architecture?
 
-1.  **Define Input**: Create a PHP class in `tests/Fixtures/Input/`.
-2.  **Define Expected Output**: Create the corresponding JSON file in `tests/Fixtures/Expected/`.
-3.  **Implement**: Write the parser logic to make the input match the output.
-
-## 4. Why this architecture?
-
-| Feature | Runtime Reflection Approach | Static Analysis (This Lib) |
+| Feature | Runtime Reflection Approach | This Library (PHPStan Native) |
 | :--- | :--- | :--- |
 | **Runtime Overhead** | **High** (Parses code on every request) | **Zero** (Uses pre-generated schema) |
 | **Safety** | Execution side-effects possible | **Zero side-effects** (Code is never run) |
-| **Type Detail** | Low (only native types) | **High** (Generics, Ranges, Shapes) |
-| **Dependencies** | Requires autoloader | **Standalone** |
+| **Type Detail** | Low (Native types only) | **High** (Ranges, Shapes, Generics) |
+| **Dependencies** | Requires class loading | **Standalone Static Analysis** |
 
-By choosing Static Analysis and AOT generation, we ensure:
-- **Maximum Runtime Performance**: The application only validates against a static JSON file.
-- **Advanced Type Support**: We can support complex types (Generics, Shapes) that the PHP runtime ignores.
+By leveraging PHPStan's engine without using runtime reflection, we can support advanced types that are invisible to the PHP runtime while maintaining maximum performance and safety.
