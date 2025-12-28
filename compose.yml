@@ -5,6 +5,7 @@ services:
       target: runner
       args:
         PHP_VERSION: 8.5.1
+    user: "${UID}:${GID}"
     entrypoint: ["php"]
     volumes:
       - .:/app
