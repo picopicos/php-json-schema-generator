@@ -1,0 +1,10 @@
+services:
+	-
+		class: PhpJsonSchemaGenerator\Collector\PropertyCollector
+		tags:
+			- phpstan.collector
+
+	-
+		class: PhpJsonSchemaGenerator\Rule\SchemaAggregatorRule
+		tags:
+			- phpstan.rules.rule
