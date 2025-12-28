@@ -23,14 +23,14 @@
 
 ## Key Features
 
-- **🔍 Static Analysis (AOT)**: Leverages `Roave/BetterReflection` to parse your code without executing it.
-- **🛡️ PHPStan Integration**: Automatically converts advanced PHPStan types like `int<min, max>` or `non-empty-string` into JSON Schema validation keywords.
-- **🚀 Zero Runtime Overhead**: Designed to be used during build time or via CLI to dump schema files.
+- **🛡️ PHPStan Native**: Runs as a PHPStan Extension, guaranteeing 100% compatibility with your existing type definitions.
+- **🔍 Advanced Type Support**: Automatically converts complex types like `int<min, max>` or `non-empty-string` into JSON Schema constraints using PHPStan's powerful inference engine.
+- **🚀 Zero Runtime Overhead**: Designed to be used during build time or via CLI to dump schema files. No runtime reflection is used.
 
 ## Requirements
 
 - **Environment (Build time)**: PHP 8.5+ is required to run the generator.
-- **Target Code (Input)**: Supports PHP 8.0+ classes (utilizing PHP 8 Attributes and advanced type hints).
+- **Target Code (Input)**: Supports PHP 8.0+ classes.
 
 ## License
 

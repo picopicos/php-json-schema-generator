@@ -1,17 +1,14 @@
 {
     "name": "picopico/php-json-schema-generator",
     "description": "Generate JSON Schema from PHPStan types using Static Analysis",
-    "type": "library",
+    "type": "phpstan-extension",
     "license": "MIT",
     "require": {
         "php": ">=8.5.1",
-        "nikic/php-parser": "^5.0",
-        "phpstan/phpdoc-parser": "^2.0",
-        "roave/better-reflection": "^6.0"
+        "phpstan/phpstan": "^2.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.50",
-        "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^11.0",
         "symfony/var-dumper": "^7.0"
     },
@@ -30,6 +27,13 @@
         "test:filter": "phpunit --colors=always --filter",
         "lint": "phpstan analyse --memory-limit=2G",
         "format": "php-cs-fixer fix --allow-risky=yes"
+    },
+    "extra": {
+        "phpstan": {
+            "includes": [
+                "extension.neon"
+            ]
+        }
     },
     "config": {
         "sort-packages": true,
