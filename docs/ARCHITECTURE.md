@@ -2,12 +2,12 @@
 
 ## 1. Core Concept
 
-This library aims to be the **Single Source of Truth** for JSON Schema generation in PHP projects. Instead of maintaining separate YAML files or relying on runtime reflection, we treat **PHP Code (Static Types, PHPDoc, Attributes)** as the definitive schema definition.
+This library generates JSON Schema directly from PHP code by performing static analysis on type hints and DocBlocks. It is designed to bridge the gap between PHPStan's advanced type system and standard JSON Schema.
 
 ### Key Principles
-- **Static Analysis (AOT)**: We use static analysis to generate schemas. This means no code is executed during generation, making it safe and performant. Runtime reflection (`ReflectionClass`) is strictly prohibited.
-- **PHPStan Compatibility**: We respect PHPStan's type system. Types like `int<1, 10>` or `non-empty-string` are automatically converted to JSON Schema validation constraints (`minimum`, `minLength`).
-- **Standard Compliance**: The output is strictly compliant with **JSON Schema Draft 2020-12** and **OpenAPI 3.1**.
+- **Static Analysis (AOT)**: Uses static analysis to generate schemas. No code is executed during generation, ensuring safety and performance. Runtime reflection (`ReflectionClass`) is strictly prohibited.
+- **PHPStan Compatibility**: Respects PHPStan's type system. Types like `int<1, 10>` or `non-empty-string` are converted to JSON Schema validation constraints (`minimum`, `minLength`).
+- **Standard Compliance**: Output is compliant with standard JSON Schema and OpenAPI 3.1.
 
 ## 2. Component Architecture
 
@@ -22,7 +22,7 @@ graph LR
 ```
 
 ### 2.1. Reflector (`Roave\BetterReflection`)
-The entry point. It reads PHP files and constructs an object model of classes, properties, and methods without loading them into PHP's memory. This ensures that the generation process is isolated from the application's runtime state.
+The entry point. It reads PHP files and constructs an object model of classes, properties, and methods without loading them into PHP's memory.
 
 ### 2.2. Type Parser (`phpstan/phpdoc-parser`)
 Extracts rich type information from DocBlocks.
@@ -46,14 +46,13 @@ We adopt a **Test-Driven Development (TDD)** approach using Fixtures.
 
 ## 4. Why this architecture?
 
-| Feature | Runtime Reflection | Static Analysis (This Lib) |
+| Feature | Runtime Reflection Approach | Static Analysis (This Lib) |
 | :--- | :--- | :--- |
-| **Performance** | Fast (Memory heavy) | Slower (Disk I/O heavy) |
-| **Safety** | Execution side-effects | **Zero side-effects** |
-| **Type Detail** | Low (only native types) | **High (Generics, Ranges)** |
+| **Runtime Overhead** | **High** (Parses code on every request) | **Zero** (Uses pre-generated schema) |
+| **Safety** | Execution side-effects possible | **Zero side-effects** (Code is never run) |
+| **Type Detail** | Low (only native types) | **High** (Generics, Ranges, Shapes) |
 | **Dependencies** | Requires autoloader | **Standalone** |
 
-By choosing Static Analysis, we enable advanced features like:
-- Validating schema against code at build time.
-- Supporting complex types that PHP runtime ignores (Generics, Shapes).
-- Generating schemas for code that might not even be runnable in the generator's environment.
+By choosing Static Analysis and AOT generation, we ensure:
+- **Maximum Runtime Performance**: The application only validates against a static JSON file.
+- **Advanced Type Support**: We can support complex types (Generics, Shapes) that the PHP runtime ignores.
