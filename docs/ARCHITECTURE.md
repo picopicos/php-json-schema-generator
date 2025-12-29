@@ -11,7 +11,7 @@ This library generates JSON Schema compatible with OpenAPI 3.1 directly from PHP
 
 ## 2. Architectural Pipeline
 
-We adopt a **3-Stage Compiler Pipeline** to ensure scalability and loose coupling.
+We adopt a **3-Stage Compiler Pipeline** enhanced with a **Schema Registry** to handle recursion and references.
 
 ```mermaid
 flowchart LR
@@ -21,15 +21,15 @@ flowchart LR
     
     subgraph Phase2 [Phase 2: Normalization]
         B -->|PHPStan Type| C{TypeMapper}
-        C -->|Strategy| D[IntegerMapper]
-        C -->|Strategy| E[StringMapper]
-        C -->|Strategy| F[UnionMapper]
-        D & E & F -->|Produces| G[**Schema DTO (IR)**]
+        C <-->|Query/Register| R[(SchemaRegistry)]
+        C -->|Ref| D[ReferenceSchema]
+        C -->|Primitive| E[IntegerSchema]
+        D & E -->|Produces| F[**Schema DTO (IR)**]
     end
     
     subgraph Phase3 [Phase 3: Generation]
-        G -->|Aggregated into| H[ObjectSchema]
-        H -->|json_encode| I[JSON Schema File]
+        F -->|Aggregated into| G[ObjectSchema]
+        G -->|json_encode| H[JSON Schema File]
     end
 ```
 
@@ -43,9 +43,9 @@ flowchart LR
 ### 2.2. Phase 2: Normalization (Mapper)
 - **Component**: `TypeMapper` (Composite Pattern)
 - **Responsibility**: Converts `PHPStan\Type` into **Schema DTOs**.
-- **Key Decision**: Determines the `type` and constraints (e.g., `minimum`, `pattern`).
-    - **Note**: Mappers do NOT care about `required`. They only care about the value type (including `null`).
-    - **Example**: `?int` is mapped to a Schema with `type: ["integer", "null"]`.
+- **Logic**:
+    - For primitive types (int, string), returns basic Schema DTOs.
+    - For Class/Object types, consults the **SchemaRegistry** to decide whether to return a `$ref` or generate the definition.
 
 ### 2.3. Phase 3: Generation (Schema DTOs)
 - **Component**: `src/Schema/*` (e.g., `ObjectSchema`, `IntegerSchema`)
@@ -54,6 +54,17 @@ flowchart LR
     - `ObjectSchema` acts as the aggregate root.
     - It holds the list of properties (`properties`) and the list of required field names (`required`).
     - `jsonSerialize()` ensures the output matches the OpenAPI 3.1 / JSON Schema specification.
+
+### 2.4. Schema Registry & References
+We employ a **Schema Registry** to manage type definitions, reusability, and recursion.
+
+- **Component**: `SchemaRegistry`
+- **Strategy**: **"Ref by Default"**
+    - Every PHP Class (DTO) encountered is treated as a reusable Schema Component.
+    - The Mapper returns a `ReferenceSchema` (e.g., `{"$ref": "#/components/schemas/UserDto"}`) instead of inlining the object.
+- **Recursion Handling**:
+    - The Registry tracks currently processing types.
+    - If a recursive type is detected (e.g., `Category` containing `parent: Category`), it immediately returns a `$ref` to avoid infinite loops.
 
 ## 3. Mapping Strategy Examples
 
@@ -74,5 +85,6 @@ src/
 ├── Collector/       # Phase 1: Extracts info from PHPStan
 ├── Mapper/          # Phase 2: Converts Types to Schema DTOs
 ├── Schema/          # Phase 3: Schema Object Model (The IR)
+├── Registry/        # Schema Management & Reference Resolution
 └── Rule/            # Entrypoint: PHPStan Rule to trigger the pipeline
 ```
