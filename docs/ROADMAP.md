@@ -5,56 +5,47 @@ This document outlines the development milestones for the PHPStan-First JSON Sch
 ## Milestone 0.1.0: Architectural Foundation (MVP)
 
 **Goal**: Establish the 3-Stage Pipeline architecture and prove the concept with minimal types.
-**Focus**: Correctly implement the flow: `PHPStan Node` -> `Collector` -> `Mapper` -> `Schema DTO` -> `JSON`.
+**Output**: Self-contained JSON Schema files for simple DTOs.
 
-### Scope
-- **Supported Types**: `int`, `string`, `bool` (and their `nullable` variants).
-- **Supported Features**:
-    - `required` detection based on default values.
-    - Basic `ObjectSchema` generation.
-- **Excluded (Deferred to 0.2.0)**:
-    - Arrays / Lists.
-    - Unions (complex ones like `int|string`).
-    - Generics.
-    - Integer Ranges.
-    - Nested Objects.
+### Core Features
+- **Pipeline**: `Collector` (Required detection) -> `Mapper` (Type conversion) -> `Schema DTO` (IR).
+- **Registry**: Basic implementation of `SchemaRegistry` to support `Ref by Default`.
+- **Types**: `int`, `string`, `bool`, `null`, and simple `User-Defined Classes`.
+- **References**: Recursion handling for nested objects (e.g., `User` <-> `Group`).
+- **Naming**: Use PHP property names as-is.
 
 ### Tasks
 #### 1. Intermediate Representation (IR)
 - [ ] Define `SchemaInterface`.
-- [ ] Implement `ObjectSchema` (Support `addProperty` and `required` management).
-- [ ] Implement `IntegerSchema`, `StringSchema`, `BooleanSchema`, `NullSchema`.
+- [ ] Implement `ObjectSchema`, `ReferenceSchema`, `PrimitiveSchema`.
 
-#### 2. Mapper System
+#### 2. Mapper System (Chain of Responsibility)
 - [ ] Define `TypeMapperInterface`.
-- [ ] Implement `IntegerMapper`, `StringMapper`, `BooleanMapper`.
-- [ ] Implement `MixedMapper` (Fallback for testing).
-- [ ] Implement `CompositeTypeMapper` (The main dispatcher).
+- [ ] Implement `PrimitiveMapper` (Int, String, Bool).
+- [ ] Implement `RefMapper` (Delegates to Registry).
+- [ ] Implement `MixedMapper` (Fallback to Any).
 
-#### 3. Collector & Rule
-- [ ] Implement `PropertyCollector` logic to detect `default value` status.
-- [ ] Update `SchemaAggregatorRule` to orchestrate the pipeline.
-
-#### 4. Verification
-- [ ] **End-to-End Test**:
-    - Input: `class SimpleDto { public int $id; public ?string $name = null; }`
-    - Expected Output: Valid JSON Schema with correct `required` fields.
+#### 3. Registry & Collector
+- [ ] Implement `SchemaRegistry` (Track processing types, store definitions).
+- [ ] Implement `PropertyCollector` (Default value detection).
 
 ---
 
-## Future Milestones (Draft)
+## Future Milestones
 
-### Milestone 0.2.0: Complex Types
+### Milestone 0.2.0: Complex Types & Collections
 - Support `array` and `list<T>`.
-- Support `union` types (`oneOf`, `anyOf`).
-- Support nested objects (References or Inline).
+- Support `array{key: val}` (Shapes).
+- Support `DateTimeInterface` (via `DateMapper` -> `format: date-time`).
+- Support `UnionType` (`int|string` -> `anyOf`).
 
-### Milestone 0.3.0: Advanced Constraints
-- Integer Ranges (`min`, `max`).
+### Milestone 0.3.0: Constraints & Customization
+- Integer Ranges (`int<min, max>`).
 - String Patterns (`regex`).
-- Array Shapes (`array{key: val}`).
+- **Naming Strategy**: Support `snake_case` conversion option.
+- **Attributes**: Support `#[JsonProperty]`, `#[Title]`, `#[Description]`.
 
 ### Milestone 1.0.0: First Stable Release
 - Full OpenAPI 3.1 Compatibility.
-- Comprehensive Documentation.
-- Performance Tuning.
+- Component Library Mode (Export all schemas in one file).
+- Production-ready error handling and logging.

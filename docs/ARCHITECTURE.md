@@ -20,70 +20,69 @@ flowchart LR
     end
     
     subgraph Phase2 [Phase 2: Normalization]
-        B -->|PHPStan Type| C{TypeMapper}
+        B -->|PHPStan Type| C{TypeMapper Dispatcher}
         C <-->|Query/Register| R[(SchemaRegistry)]
-        C -->|Ref| D[ReferenceSchema]
-        C -->|Primitive| E[IntegerSchema]
-        D & E -->|Produces| F[**Schema DTO (IR)**]
+        C -->|Chain| D[DateMapper]
+        C -->|Chain| E[RefMapper]
+        C -->|Chain| F[PrimitiveMapper]
+        D & E & F -->|Produces| G[**Schema DTO (IR)**]
     end
     
     subgraph Phase3 [Phase 3: Generation]
-        F -->|Aggregated into| G[ObjectSchema]
-        G -->|json_encode| H[JSON Schema File]
+        G -->|Aggregated into| H[ObjectSchema]
+        H -->|json_encode| I[JSON Schema File]
     end
 ```
 
 ### 2.1. Phase 1: Analysis (Collector)
 - **Component**: `PropertyCollector`
 - **Responsibility**: Inspects PHP Class AST and Reflection to determine **Property Metadata**.
-- **Key Decision**: Determines `required` vs `optional` status.
-    - **Rule**: If a property has no default value, it is `required`.
-    - **Rule**: If a property has a default value, it is `optional`.
+- **Key Decision**: Determines `required` vs `optional` status based on default values.
 
 ### 2.2. Phase 2: Normalization (Mapper)
-- **Component**: `TypeMapper` (Composite Pattern)
+- **Pattern**: **Chain of Responsibility**
+- **Component**: `TypeMapper` (Dispatcher)
 - **Responsibility**: Converts `PHPStan\Type` into **Schema DTOs**.
-- **Logic**:
-    - For primitive types (int, string), returns basic Schema DTOs.
-    - For Class/Object types, consults the **SchemaRegistry** to decide whether to return a `$ref` or generate the definition.
+- **Workflow**:
+    1.  **Special Types Check**: First, check for special types like `DateTime` (mapped to `string(date-time)`).
+    2.  **Object/Class Check**: If it's a user-defined class, delegate to `SchemaRegistry` (returns `$ref`).
+    3.  **Primitive Check**: Map `int`, `string`, `bool`, etc.
+    4.  **Fallback**: Map unknown types to Empty Schema (`{}`) (Any type) with a warning.
 
 ### 2.3. Phase 3: Generation (Schema DTOs)
-- **Component**: `src/Schema/*` (e.g., `ObjectSchema`, `IntegerSchema`)
+- **Component**: `src/Schema/*`
 - **Responsibility**: Represents the JSON Schema structure in a strictly typed PHP Object Model.
-- **Key Logic**:
-    - `ObjectSchema` acts as the aggregate root.
-    - It holds the list of properties (`properties`) and the list of required field names (`required`).
-    - `jsonSerialize()` ensures the output matches the OpenAPI 3.1 / JSON Schema specification.
 
 ### 2.4. Schema Registry & References
 We employ a **Schema Registry** to manage type definitions, reusability, and recursion.
 
 - **Component**: `SchemaRegistry`
 - **Strategy**: **"Ref by Default"**
-    - Every PHP Class (DTO) encountered is treated as a reusable Schema Component.
-    - The Mapper returns a `ReferenceSchema` (e.g., `{"$ref": "#/components/schemas/UserDto"}`) instead of inlining the object.
-- **Recursion Handling**:
-    - The Registry tracks currently processing types.
-    - If a recursive type is detected (e.g., `Category` containing `parent: Category`), it immediately returns a `$ref` to avoid infinite loops.
+    - Every PHP Class (DTO) is treated as a reusable Schema Component.
+    - Output Format: **Self-contained File** (Default).
+        - Each generated JSON file contains the Root schema and a `definitions` section containing all referenced schemas (`GroupDto`, `EnumDto`, etc.).
 
-## 3. Mapping Strategy Examples
+## 3. Design Strategies
 
 ### 3.1. Required vs Nullable
-We strictly separate the concept of "Required" (Key existence) and "Nullable" (Value type).
+We strictly separate "Required" (Key existence) and "Nullable" (Value type).
 
 | PHP Definition | Schema Meaning | Responsibility | Generated Schema |
 | :--- | :--- | :--- | :--- |
-| `public int $a;` | **Required**, Not Null | Collector: Required<br>Mapper: Integer | `{"type": "integer"}`, `required: ["a"]` |
-| `public ?int $a;` | **Required**, Nullable | Collector: Required<br>Mapper: Int \| Null | `{"type": ["integer", "null"]}`, `required: ["a"]` |
-| `public int $a = 1;` | **Optional**, Not Null | Collector: Optional<br>Mapper: Integer | `{"type": "integer"}` |
-| `public ?int $a = null;` | **Optional**, Nullable | Collector: Optional<br>Mapper: Int \| Null | `{"type": ["integer", "null"]}` |
+| `public int $a;` | **Required**, Not Null | Collector: Required | `{"type": "integer"}`, `required: ["a"]` |
+| `public ?int $a;` | **Required**, Nullable | Collector: Required | `{"type": ["integer", "null"]}`, `required: ["a"]` |
+| `public int $a = 1;` | **Optional**, Not Null | Collector: Optional | `{"type": "integer"}` |
+
+### 3.2. Naming Strategy
+- **MVP**: Use PHP property names as-is (e.g., `userProfile` -> `userProfile`).
+- **Future**: Support `snake_case` conversion or `#[JsonProperty]` override via a customizable naming strategy.
 
 ## 4. Directory Structure
 
 ```text
 src/
 ├── Collector/       # Phase 1: Extracts info from PHPStan
-├── Mapper/          # Phase 2: Converts Types to Schema DTOs
+├── Mapper/          # Phase 2: Converts Types to Schema DTOs (Chain of Responsibility)
 ├── Schema/          # Phase 3: Schema Object Model (The IR)
 ├── Registry/        # Schema Management & Reference Resolution
 └── Rule/            # Entrypoint: PHPStan Rule to trigger the pipeline
