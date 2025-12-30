@@ -2,8 +2,19 @@
 
 **Generate OpenAPI-compatible JSON Schemas from PHP classes using PHPStan's native type inference.**
 
-[![CI](https://github.com/picopicos/phpstan-json-schema/actions/workflows/ci.yml/badge.svg)](https://github.com/picopicos/phpstan-json-schema/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/picopicos/phpstan-json-schema/graph/badge.svg?token=YOUR_TOKEN)](https://codecov.io/gh/picopicos/phpstan-json-schema)
+<p align="center">
+  <a href="https://github.com/picopicos/phpstan-json-schema/actions/workflows/ci.yml">
+    <img src="https://github.com/picopicos/phpstan-json-schema/actions/workflows/ci.yml/badge.svg" alt="CI">
+  </a>
+  <a href="https://codecov.io/gh/picopicos/phpstan-json-schema">
+    <img src="https://codecov.io/gh/picopicos/phpstan-json-schema/graph/badge.svg?token=YVHC1U9JXC" alt="Codecov"/>
+  </a>
+  <img src="https://img.shields.io/badge/php-%5E8.5-777bb4.svg" alt="PHP Version">
+  <a href="https://github.com/picopicos/phpstan-json-schema/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/picopicos/phpstan-json-schema" alt="License">
+  </a>
+  <img src="https://img.shields.io/badge/PHPStan-level%20max-brightgreen.svg" alt="PHPStan Level">
+</p>
 
 ## Features
 
