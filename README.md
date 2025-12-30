@@ -1,19 +1,26 @@
-# PHPStan JSON Schema Generator
-
-**Generate OpenAPI-compatible JSON Schemas from PHP classes using PHPStan's native type inference.**
+> [!WARNING]
+> **Work In Progress**
+> This project is currently under active development towards the **0.1.0** release.
+> APIs and behaviors are subject to change without notice. Please wait for the initial release before using in production.
 
 <p align="center">
-  <a href="https://github.com/picopicos/phpstan-json-schema/actions/workflows/ci.yml">
-    <img src="https://github.com/picopicos/phpstan-json-schema/actions/workflows/ci.yml/badge.svg" alt="CI">
-  </a>
-  <a href="https://codecov.io/gh/picopicos/phpstan-json-schema">
-    <img src="https://codecov.io/gh/picopicos/phpstan-json-schema/graph/badge.svg?token=YVHC1U9JXC" alt="Codecov"/>
-  </a>
-  <img src="https://img.shields.io/badge/php-%5E8.5-777bb4.svg" alt="PHP Version">
-  <a href="https://github.com/picopicos/phpstan-json-schema/blob/main/LICENSE">
-    <img src="https://img.shields.io/github/license/picopicos/phpstan-json-schema" alt="License">
-  </a>
-  <img src="https://img.shields.io/badge/PHPStan-level%20max-brightgreen.svg" alt="PHPStan Level">
+  <h1 align="center">PHPStan JSON Schema Generator</h1>
+  <p align="center">
+    <strong>Generate OpenAPI-compatible JSON Schemas from PHP classes using PHPStan's native type inference.</strong>
+  </p>
+  <p align="center">
+    <a href="https://github.com/picopicos/phpstan-json-schema/actions/workflows/ci.yml">
+      <img src="https://github.com/picopicos/phpstan-json-schema/actions/workflows/ci.yml/badge.svg" alt="CI">
+    </a>
+    <a href="https://codecov.io/gh/picopicos/phpstan-json-schema">
+      <img src="https://codecov.io/gh/picopicos/phpstan-json-schema/graph/badge.svg?token=YVHC1U9JXC" alt="Codecov"/>
+    </a>
+    <img src="https://img.shields.io/badge/php-%5E8.5-777bb4.svg" alt="PHP Version">
+    <a href="https://github.com/picopicos/phpstan-json-schema/blob/main/LICENSE">
+      <img src="https://img.shields.io/github/license/picopicos/phpstan-json-schema" alt="License">
+    </a>
+    <img src="https://img.shields.io/badge/PHPStan-level%20max-brightgreen.svg" alt="PHPStan Level">
+  </p>
 </p>
 
 ## Features
