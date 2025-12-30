@@ -1,4 +1,4 @@
-# Copilot Instructions for php-json-schema-generator
+# Copilot Instructions for phpstan-json-schema
 
 ## Project Context
 A PHP 8.5+ library for generating JSON Schema (Draft 2020-12) from PHP classes using static analysis (roave/better-reflection, phpstan/phpdoc-parser).

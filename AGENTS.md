@@ -2,10 +2,10 @@
 
 ## Project Documentation
 - **Architecture**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- **Roadmap**: [GitHub Milestone 0.1.0](https://github.com/picopicos/php-json-schema-generator/milestone/1)
+- **Roadmap**: [GitHub Milestone 0.1.0](https://github.com/picopicos/phpstan-json-schema/milestone/1)
 
 ## Project Mission
-**"PHPStan-First JSON Schema Generator"**
+**"PHPStan JSON Schema Generator"**
 Build a library that generates JSON Schema compatible with OpenAPI 3.1 directly from PHP classes (DTOs) using **PHPStan's native analysis engine**.
 
 ## Tech Stack & Architecture

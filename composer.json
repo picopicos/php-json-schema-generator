@@ -1,6 +1,6 @@
 {
-    "name": "picopico/php-json-schema-generator",
-    "description": "Generate JSON Schema from PHPStan types using Static Analysis",
+    "name": "picopicos/phpstan-json-schema",
+    "description": "Generate JSON Schema from PHP classes using PHPStan types (Static Analysis)",
     "type": "phpstan-extension",
     "license": "MIT",
     "require": {
