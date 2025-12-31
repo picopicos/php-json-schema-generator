@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-namespace PhpStanJsonSchema\Mapper\Types;
+namespace PhpStanJsonSchema\Mapper;
 
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PhpStanJsonSchema\Exception\UnsupportedTypeException;
-use PhpStanJsonSchema\Mapper\TypeMapper;
 use PhpStanJsonSchema\Schema\ObjectSchema;
 use PhpStanJsonSchema\Schema\SchemaMetadata;
 
-final readonly class ObjectTypeMapper implements ObjectTypeMapperInterface
+final readonly class ClassSchemaBuilder implements ClassSchemaBuilderInterface
 {
     public function __construct(
         private TypeMapper $typeMapper

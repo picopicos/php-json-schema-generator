@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhpStanJsonSchema\Controller;
 
 use PhpParser\Node;
-use PhpStanJsonSchema\Mapper\Types\ObjectTypeMapperInterface;
+use PhpStanJsonSchema\Mapper\ClassSchemaBuilderInterface;
 use PhpStanJsonSchema\Schema\Schema;
 use PHPStan\Analyser\Scope;
 use PHPStan\Collectors\Collector;
@@ -21,7 +21,7 @@ use PHPStan\Node\InClassNode;
 class SchemaCollector implements Collector
 {
     public function __construct(
-        private readonly ObjectTypeMapperInterface $schemaBuilder
+        private readonly ClassSchemaBuilderInterface $schemaBuilder
     ) {}
 
     public function getNodeType(): string

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Collector;
 
 use PhpStanJsonSchema\Controller\SchemaCollector;
-use PhpStanJsonSchema\Mapper\Types\ObjectTypeMapperInterface;
+use PhpStanJsonSchema\Mapper\ClassSchemaBuilderInterface;
 use PhpStanJsonSchema\Schema\ObjectSchema;
 use PhpStanJsonSchema\Schema\SchemaMetadata;
 use PHPStan\Analyser\Scope;
@@ -17,11 +17,11 @@ use Tests\Integration\Fixtures\Integer\RangeDto;
 class SchemaCollectorTest extends PHPStanTestCase
 {
     private SchemaCollector $collector;
-    private ObjectTypeMapperInterface&\PHPUnit\Framework\MockObject\MockObject $builder;
+    private ClassSchemaBuilderInterface&\PHPUnit\Framework\MockObject\MockObject $builder;
 
     protected function setUp(): void
     {
-        $this->builder = $this->createMock(ObjectTypeMapperInterface::class);
+        $this->builder = $this->createMock(ClassSchemaBuilderInterface::class);
         $this->collector = new SchemaCollector($this->builder);
     }
 

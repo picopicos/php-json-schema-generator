@@ -19,7 +19,7 @@ services:
 			mappers: tagged(phpstan_json_schema.type_mapper)
 
 	-
-		class: PhpStanJsonSchema\Mapper\Types\ObjectTypeMapper
+		class: PhpStanJsonSchema\Mapper\ClassSchemaBuilder
 		arguments:
 			typeMapper: @PhpStanJsonSchema\Mapper\TypeMapperRegistry
 

@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace PhpStanJsonSchema\Mapper\Types;
+namespace PhpStanJsonSchema\Mapper;
 
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PhpStanJsonSchema\Schema\ObjectSchema;
 
-interface ObjectTypeMapperInterface
+interface ClassSchemaBuilderInterface
 {
     public function build(ClassReflection $classReflection, Scope $scope): ObjectSchema;
 }
