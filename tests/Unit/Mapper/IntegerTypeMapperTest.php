@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Mapper;
 
+use PhpStanJsonSchema\Mapper\Types\IntegerTypeMapper;
+use PhpStanJsonSchema\Schema\IntegerSchema;
 use PHPStan\Type\IntegerRangeType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\StringType;
-use PhpStanJsonSchema\Mapper\IntegerTypeMapper;
-use PhpStanJsonSchema\Schema\IntegerSchema;
 use PHPUnit\Framework\TestCase;
 
 class IntegerTypeMapperTest extends TestCase

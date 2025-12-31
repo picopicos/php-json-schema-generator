@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace PhpStanJsonSchema\Collector;
+namespace PhpStanJsonSchema\Controller;
 
 use PhpParser\Node;
+use PhpStanJsonSchema\Exception\UnsupportedTypeException;
+use PhpStanJsonSchema\Mapper\TypeMapperRegistry;
 use PHPStan\Analyser\Scope;
 use PHPStan\Collectors\Collector;
 use PHPStan\Node\ClassPropertyNode;
-use PhpStanJsonSchema\Exception\UnsupportedTypeException;
-use PhpStanJsonSchema\Mapper\TypeMapperRegistry;
 
 /**
  * @implements Collector<ClassPropertyNode, PropertyDTO>
