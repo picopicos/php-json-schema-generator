@@ -6,56 +6,73 @@ This library generates JSON Schema directly from PHP code by leveraging **PHPSta
 
 ### Key Principles
 - **PHPStan Native**: We run as a PHPStan extension to ensure 100% compatibility with its type system.
-- **No Runtime Reflection**: We strictly avoid PHP's native reflection (`new ReflectionClass`). All information is extracted via static analysis (AOT), ensuring that user classes are never instantiated or even loaded during generation.
-- **Separation of Concerns**: Analysis, Mapping, Generation, and I/O are strictly separated.
-- **Pure Logic**: The core `SchemaGenerator` is a pure function with no side effects.
+- **No Runtime Reflection**: We strictly avoid PHP's native reflection (`new ReflectionClass`).
+- **Immutable Domain Models**: Schema definitions are represented as immutable Value Objects.
+- **Encapsulated Logic**: Generation logic is encapsulated within Schema objects via `JsonSerializable`.
 
 ## 2. Component Architecture
 
 ```mermaid
-sequenceDiagram
-    participant Source as PHP Code
-    participant PHPStan as PHPStan Engine
-    participant Collector as PropertyCollector
-    participant Mapper as TypeMapper
-    participant Rule as SchemaAggregatorRule
-    participant Gen as SchemaGenerator
-    participant Writer as FileWriter
-
-    PHPStan->>Source: Analyse Files (Static Only)
-    loop For Each Property
-        PHPStan->>Collector: Visit ClassPropertyNode
-        Collector->>Mapper: map(Node, Scope)
-        Mapper->>Collector: return PropertyDTO
-        Collector->>PHPStan: return PropertyDTO
-    end
+classDiagram
+    class PropertyCollector {
+        +processNode()
+    }
+    class TypeMapper {
+        +map(Type): Schema
+    }
+    class SchemaRegistry {
+        +get(string): ?Schema
+        +register(string, Schema)
+    }
+    class SchemaAggregatorRule {
+        +processNode()
+    }
     
-    PHPStan->>Rule: Process CollectedDataNode (All DTOs)
-    Rule->>Gen: generate(PropertyDTOs[])
-    Gen->>Rule: return SchemaArray (Pure)
-    Rule->>Writer: write(SchemaArray)
+    PropertyCollector --> TypeMapper
+    TypeMapper --> SchemaRegistry
+    TypeMapper ..> Schema
+    SchemaAggregatorRule --> Schema : Serializes
 ```
 
-### 2.1. TypeMapper (`Service`)
-- **Responsibility**: The Heavy Lifter. Converts complex `PHPStan\Type` objects into framework-agnostic DTOs.
-- **Logic**: Handles `IntegerRangeType`, `UnionType`, `Generics`, etc.
+### 2.1. Domain Layer (Schema Value Objects)
+Immutable objects representing JSON Schema definitions. They encapsulate validation constraints and JSON serialization logic.
 
-### 2.2. PropertyCollector (`PHPStan Collector`)
-- **Responsibility**: Interface. Delegates mapping to `TypeMapper` and returns the resulting DTO to PHPStan.
+- **Schema (Interface)**: Extends `JsonSerializable`.
+- **SchemaMetadata (VO)**: Holds type-agnostic documentation fields (`title`, `description`, `deprecated`, `readOnly`, `writeOnly`).
+- **Concrete Schemas**:
+  - `IntegerSchema`: Holds `minimum`, `maximum`, `default` (int), `enum` (int[]).
+  - `StringSchema`: Holds `minLength`, `pattern`, `format`.
+  - `ObjectSchema`: Holds property map.
+  - `RefSchema`: Represents `$ref` pointers.
 
-### 2.3. SchemaAggregatorRule (`PHPStan Rule / Controller`)
-- **Responsibility**: Orchestration. Aggregates data and handles I/O.
+### 2.2. Service Layer
 
-### 2.4. SchemaGenerator (`Service`)
-- **Responsibility**: **Pure Function**. Converts DTOs into JSON Schema structure. No PHPStan or I/O dependencies.
+#### TypeMapper (Factory)
+- **Responsibility**: Converts PHPStan's `Type` objects into `Schema` Value Objects.
+- **Logic**: Handles `IntegerRangeType` -> `IntegerSchema`, `UnionType` -> `OneOfSchema` etc.
 
-## 3. Why this architecture?
+#### SchemaRegistry
+- **Responsibility**: Manages recursion and caching.
+- **Features**:
+  - Detects circular references.
+  - Returns `RefSchema` for already processed types.
+  - Maps FQCNs to Schema paths (e.g., `#/components/schemas/UserDto`).
 
-| Feature | Runtime Reflection Approach | This Library (PHPStan Native) |
-| :--- | :--- | :--- |
-| **Runtime Overhead** | **High** (Parses code on every request) | **Zero** (Uses pre-generated schema) |
-| **Safety** | Execution side-effects possible | **Zero side-effects** (Code is never run) |
-| **Type Detail** | Low (Native types only) | **High** (Ranges, Shapes, Generics) |
-| **Dependencies** | Requires class loading | **Standalone Static Analysis** |
+### 2.3. PHPStan Integration
 
-By leveraging PHPStan's engine without using runtime reflection, we can support advanced types that are invisible to the PHP runtime while maintaining maximum performance and safety.
+#### PropertyCollector
+- Visits `ClassPropertyNode`.
+- Uses `TypeMapper` to create a `PropertyDTO` containing the resolved `Schema`.
+- Returns the DTO to PHPStan.
+
+#### SchemaAggregatorRule
+- Aggregates collected DTOs.
+- Orchestrates the final JSON file generation.
+
+## 3. Data Flow
+
+1.  **Analysis**: PHPStan analyzes the source code.
+2.  **Collection**: `PropertyCollector` visits properties.
+3.  **Mapping**: `TypeMapper` converts PHPStan types to `Schema` objects, using `SchemaRegistry` to handle references.
+4.  **Aggregation**: `SchemaAggregatorRule` gathers all schemas.
+5.  **Serialization**: `json_encode()` is called on the root objects, triggering recursive `jsonSerialize()` calls on the Schema tree.
