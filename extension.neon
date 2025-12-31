@@ -19,7 +19,10 @@ services:
 			mappers: tagged(phpstan_json_schema.type_mapper)
 
 	-
-		class: PhpStanJsonSchema\Collector\PropertyCollector
+		class: PhpStanJsonSchema\Builder\ClassSchemaBuilder
+
+	-
+		class: PhpStanJsonSchema\Collector\SchemaCollector
 		tags:
 			- phpstan.collector
 

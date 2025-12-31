@@ -17,16 +17,15 @@ final readonly class DirectorySchemaWriter implements SchemaWriter
         }
     }
 
-    public function write(string $className, Schema $schema): void
-    {
-        // Sanitize class name for filename (App\Dto\User -> App.Dto.User.json)
-        $filename = str_replace('\\', '.', ltrim($className, '\\')) . '.json';
-        $path = $this->outputDirectory . DIRECTORY_SEPARATOR . $filename;
-
-        $json = json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
-
-        if (file_put_contents($path, $json) === false) {
-            throw new RuntimeException(sprintf('Failed to write schema to "%s"', $path));
+        public function write(string $className, Schema $schema): void
+        {
+                    // Sanitize class name for filename (App\Dto\User -> App.Dto.User.json)
+                    $filename = str_replace('\\', '.', ltrim($className, '\\')) . '.json';
+                    $path = $this->outputDirectory . DIRECTORY_SEPARATOR . $filename;
+            
+                    $json = json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+                    
+                    if (file_put_contents($path, $json) === false) {            throw new RuntimeException(sprintf('Failed to write schema to "%s"', $path));
         }
     }
 }

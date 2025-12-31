@@ -41,10 +41,13 @@ class SchemaExportTest extends TestCase
             $fixtureFile
         );
 
-        exec($cmd, $output, $resultCode);
+                        exec($cmd, $output, $resultCode);
 
-        $expectedFile = $this->outputDir . '/Tests.Fixtures.RangeDto.json';
-        $this->assertFileExists($expectedFile, 'Schema file was not generated: ' . implode("\n", $output));
+                        
+
+                        $expectedFile = $this->outputDir . '/Tests.Fixtures.RangeDto.json';
+
+                        $this->assertFileExists($expectedFile, 'Schema file was not generated: ' . implode("\n", $output));
 
         $json = (string) file_get_contents($expectedFile);
         $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);

@@ -5,17 +5,15 @@ declare(strict_types=1);
 namespace PhpStanJsonSchema\Rule;
 
 use PhpParser\Node;
-use PhpStanJsonSchema\Collector\PropertyCollector;
-use PhpStanJsonSchema\Collector\PropertyDTO;
-use PhpStanJsonSchema\Schema\ObjectSchema;
-use PhpStanJsonSchema\Schema\RawSchema;
-use PhpStanJsonSchema\Schema\SchemaMetadata;
+use PhpStanJsonSchema\Collector\SchemaCollector;
+use PhpStanJsonSchema\Collector\SchemaDTO;
 use PhpStanJsonSchema\Writer\SchemaWriter;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\CollectedDataNode;
 use PHPStan\Rules\Rule;
 
 /**
+ * @phpstan-import-type schema_data from SchemaCollector
  * @implements Rule<CollectedDataNode>
  */
 class SchemaAggregatorRule implements Rule
@@ -31,34 +29,19 @@ class SchemaAggregatorRule implements Rule
 
     public function processNode(Node $node, Scope $scope): array
     {
-        $collectedData = $node->get(PropertyCollector::class);
+        /** @var array<string, list<schema_data>> $collectedData */
+        $collectedData = $node->get(SchemaCollector::class);
         
-        $groupedByClass = [];
-
-        foreach ($collectedData as $properties) {
-            foreach ($properties as $propertyData) {
-                $dto = PropertyDTO::fromArray($propertyData);
-                $groupedByClass[$dto->className][$dto->propertyName] = $dto;
+        foreach ($collectedData as $fileSchemas) {
+            foreach ($fileSchemas as $schemaData) {
+                try {
+                    $dto = SchemaDTO::fromArray($schemaData);
+                    $this->schemaWriter->write($dto->className, $dto->schema);
+                } catch (\InvalidArgumentException $e) {
+                    // Log or ignore invalid data? For now, we rely on types.
+                    continue;
+                }
             }
-        }
-
-        foreach ($groupedByClass as $className => $properties) {
-            $schemaProperties = [];
-            $required = [];
-
-            foreach ($properties as $propertyName => $dto) {
-                $schemaProperties[$propertyName] = new RawSchema($dto->schema);
-                // For now, all properties are required
-                $required[] = $propertyName;
-            }
-
-            $objectSchema = new ObjectSchema(
-                metadata: new SchemaMetadata(),
-                properties: $schemaProperties,
-                required: $required,
-            );
-
-            $this->schemaWriter->write($className, $objectSchema);
         }
 
         return [];
