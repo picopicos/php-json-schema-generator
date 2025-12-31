@@ -29,17 +29,11 @@ class SchemaExportTest extends TestCase
 
     public function testExportsIntegerRange(): void
     {
-
         $configFile = $this->createTestConfig();
-
         $fixtureFile = __DIR__ . '/../Fixtures/Integer/RangeDto.php';
-
         $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
 
-
-
         // Run PHPStan analysis on the fixture
-
         $cmd = sprintf(
             '%s analyse -c %s %s --no-progress',
             $phpstanBin,
@@ -47,276 +41,91 @@ class SchemaExportTest extends TestCase
             $fixtureFile
         );
 
-
-
         exec($cmd, $output, $resultCode);
-
-
-
+        
         $expectedFile = $this->outputDir . '/Tests.Fixtures.Integer.RangeDto.json';
-
         $this->assertFileExists($expectedFile, 'Schema file was not generated: ' . implode("\n", $output));
 
-
-
         $json = (string) file_get_contents($expectedFile);
-
+        /** @var array{type: string, properties: array<string, array{type: string, minimum?: int, maximum?: int}>, required: list<string>} $data */
         $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
-        assert(is_array($data));
-
-
-
         // Validate structure
-
         $this->assertValidJsonSchema($json);
 
-
-
         // Validate content
-
         $this->assertSame('object', $data['type']);
-
-        $this->assertArrayHasKey('properties', $data);
-
-        assert(is_array($data['properties']));
-
-        $this->assertArrayHasKey('rating', $data['properties']);
-
-
-
+        
+        $this->assertProperty($data, 'rating', 'integer');
+        
         $rating = $data['properties']['rating'];
+        $this->assertSame(1, $rating['minimum'] ?? null);
+        $this->assertSame(10, $rating['maximum'] ?? null);
 
-        assert(is_array($rating));
-
-        $this->assertSame('integer', $rating['type']);
-
-        $this->assertSame(1, $rating['minimum']);
-
-        $this->assertSame(10, $rating['maximum']);
-
-
-
-        assert(is_iterable($data['required'] ?? []));
-
-        $this->assertContains('rating', $data['required'] ?? []);
-
+        $this->assertContains('rating', $data['required']);
     }
-
-
 
     public function testExportsMultipleProperties(): void
     {
-
         $configFile = $this->createTestConfig();
-
         $fixtureFile = __DIR__ . '/../Fixtures/Object/MultipleDto.php';
-
         $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
 
-
-
         $cmd = sprintf('%s analyse -c %s %s --no-progress', $phpstanBin, $configFile, $fixtureFile);
-
         exec($cmd, $output, $resultCode);
 
-
-
         $expectedFile = $this->outputDir . '/Tests.Fixtures.Object.MultipleDto.json';
-
         $this->assertFileExists($expectedFile);
 
-
-
         $json = (string) file_get_contents($expectedFile);
-
-
-
+        /** @var array{type: string, properties: array<string, array{type: string}>, required: list<string>} $data */
         $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
-
-
-        assert(is_array($data));
-
-
-
-
-
-
-
         $this->assertValidJsonSchema($json);
-
-
-
-
-
-
-
-        $properties = $data['properties'] ?? [];
-
-
-
-
-
-
-
-        assert(is_array($properties));
-
-
-
-
-
-
-
-        $this->assertArrayHasKey('id', $properties);
-
-
-
-
-
-
-
-        $this->assertArrayHasKey('age', $properties);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        $required = $data['required'] ?? [];
-
-
-
-        assert(is_iterable($required));
-
-
-
-        $this->assertContains('id', $required);
-
-
-
-        $this->assertContains('age', $required);
-
-
-
+        $this->assertProperty($data, 'id', 'integer');
+        $this->assertProperty($data, 'age', 'integer');
+        
+        $this->assertContains('id', $data['required']);
+        $this->assertContains('age', $data['required']);
     }
-
-
-
-
-
-
 
     public function testSkipsUnsupportedTypes(): void
     {
-
-
-
         $configFile = $this->createTestConfig();
-
-
-
         $fixtureFile = __DIR__ . '/../Fixtures/Unsupported/UnsupportedDto.php';
-
-
-
         $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
 
-
-
-
-
-
-
         $cmd = sprintf('%s analyse -c %s %s --no-progress', $phpstanBin, $configFile, $fixtureFile);
-
-
-
         exec($cmd, $output, $resultCode);
 
-
-
-
-
-
-
         $expectedFile = $this->outputDir . '/Tests.Fixtures.Unsupported.UnsupportedDto.json';
-
-
-
         $this->assertFileExists($expectedFile);
 
-
-
-
-
-
-
         $json = (string) file_get_contents($expectedFile);
-
-
-
+        /** @var array{type: string, properties: array<string, array{type: string}>, required: list<string>} $data */
         $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
-
-
-        assert(is_array($data));
-
-
-
-
-
-
-
         $this->assertValidJsonSchema($json);
+        $this->assertProperty($data, 'id', 'integer');
+        $this->assertArrayNotHasKey('name', $data['properties'], 'Unsupported type (string) should be skipped');
+        
+        $this->assertContains('id', $data['required']);
+        $this->assertNotContains('name', $data['required']);
+    }
 
-
-
-        $properties = $data['properties'] ?? [];
-
-
-
+    /**
+     * @param array<string, mixed> $schema
+     */
+    private function assertProperty(array $schema, string $propertyName, string $expectedType): void
+    {
+        $this->assertArrayHasKey('properties', $schema);
+        $properties = $schema['properties'];
         assert(is_array($properties));
-
-
-
-        $this->assertArrayHasKey('id', $properties);
-
-
-
-        $this->assertArrayNotHasKey('name', $properties, 'Unsupported type (string) should be skipped');
-
-
-
-
-
-
-
-        $required = $data['required'] ?? [];
-
-
-
-        assert(is_iterable($required));
-
-
-
-        $this->assertContains('id', $required);
-
-
-
-        $this->assertNotContains('name', $required);
-
-
-
+        
+        $this->assertArrayHasKey($propertyName, $properties);
+        $property = $properties[$propertyName];
+        assert(is_array($property));
+        $this->assertSame($expectedType, $property['type']);
     }
 
     private function createTestConfig(): string
