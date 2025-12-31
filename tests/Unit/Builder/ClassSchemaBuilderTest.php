@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Builder;
 
+use PHPStan\Testing\PHPStanTestCase;
 use PhpStanJsonSchema\Builder\ClassSchemaBuilder;
 use PhpStanJsonSchema\Mapper\TypeMapper;
 use PhpStanJsonSchema\Schema\IntegerSchema;
 use PhpStanJsonSchema\Schema\ObjectSchema;
-use PHPStan\Testing\PHPStanTestCase;
 use Tests\Fixtures\Integer\RangeDto;
 
 class ClassSchemaBuilderTest extends PHPStanTestCase
@@ -19,7 +19,7 @@ class ClassSchemaBuilderTest extends PHPStanTestCase
     {
         $typeMapper = $this->createMock(TypeMapper::class);
         $typeMapper->method('map')->willReturn(new IntegerSchema(new \PhpStanJsonSchema\Schema\SchemaMetadata()));
-        
+
         $this->builder = new ClassSchemaBuilder($typeMapper);
     }
 

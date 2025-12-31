@@ -9,6 +9,7 @@ use PhpStanJsonSchema\Collector\SchemaDTO;
 use PhpStanJsonSchema\Schema\IntegerSchema;
 use PhpStanJsonSchema\Schema\SchemaMetadata;
 use PHPUnit\Framework\TestCase;
+use stdClass;
 
 class SchemaDTOTest extends TestCase
 {
@@ -16,13 +17,13 @@ class SchemaDTOTest extends TestCase
     {
         $schema = new IntegerSchema(new SchemaMetadata());
         $data = [
-            'className' => \stdClass::class,
+            'className' => stdClass::class,
             'schema' => serialize($schema),
         ];
 
         $dto = SchemaDTO::fromArray($data);
 
-        $this->assertSame(\stdClass::class, $dto->className);
+        $this->assertSame(stdClass::class, $dto->className);
         $this->assertInstanceOf(IntegerSchema::class, $dto->schema);
     }
 
@@ -38,7 +39,7 @@ class SchemaDTOTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Missing or invalid "schema"');
         SchemaDTO::fromArray([
-            'className' => \stdClass::class,
+            'className' => stdClass::class,
             'schema' => ['some' => 'array'], // Not serialized string
         ]);
     }
@@ -47,10 +48,10 @@ class SchemaDTOTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unserialized schema is not an instance of Schema interface');
-        
+
         $data = [
-            'className' => \stdClass::class,
-            'schema' => serialize(new \stdClass()),
+            'className' => stdClass::class,
+            'schema' => serialize(new stdClass()),
         ];
 
         SchemaDTO::fromArray($data);
