@@ -7,14 +7,14 @@ namespace PhpStanJsonSchema\Builder;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PhpStanJsonSchema\Exception\UnsupportedTypeException;
-use PhpStanJsonSchema\Mapper\TypeMapperRegistry;
+use PhpStanJsonSchema\Mapper\TypeMapper;
 use PhpStanJsonSchema\Schema\ObjectSchema;
 use PhpStanJsonSchema\Schema\SchemaMetadata;
 
-final readonly class ClassSchemaBuilder
+final readonly class ClassSchemaBuilder implements ClassSchemaBuilderInterface
 {
     public function __construct(
-        private TypeMapperRegistry $typeMapper
+        private TypeMapper $typeMapper
     ) {}
 
     public function build(ClassReflection $classReflection, Scope $scope): ObjectSchema

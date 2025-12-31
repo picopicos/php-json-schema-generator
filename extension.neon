@@ -20,6 +20,8 @@ services:
 
 	-
 		class: PhpStanJsonSchema\Builder\ClassSchemaBuilder
+		arguments:
+			typeMapper: @PhpStanJsonSchema\Mapper\TypeMapperRegistry
 
 	-
 		class: PhpStanJsonSchema\Collector\SchemaCollector

@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace PhpStanJsonSchema\Collector;
 
 use PhpParser\Node;
+use PhpStanJsonSchema\Builder\ClassSchemaBuilderInterface;
+use PhpStanJsonSchema\Schema\Schema;
 use PHPStan\Analyser\Scope;
 use PHPStan\Collectors\Collector;
 use PHPStan\Node\InClassNode;
-use PhpStanJsonSchema\Builder\ClassSchemaBuilder;
-use PhpStanJsonSchema\Schema\Schema;
 
 /**
  * @phpstan-type schema_data array{
@@ -21,7 +21,7 @@ use PhpStanJsonSchema\Schema\Schema;
 class SchemaCollector implements Collector
 {
     public function __construct(
-        private readonly ClassSchemaBuilder $schemaBuilder
+        private readonly ClassSchemaBuilderInterface $schemaBuilder
     ) {}
 
     public function getNodeType(): string

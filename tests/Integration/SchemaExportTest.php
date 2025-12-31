@@ -72,6 +72,54 @@ class SchemaExportTest extends TestCase
         $this->assertContains('rating', $data['required'] ?? []);
     }
 
+    public function testExportsMultipleProperties(): void
+    {
+        $configFile = $this->createTestConfig();
+        $fixtureFile = __DIR__ . '/../Fixtures/MultipleDto.php';
+        $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
+
+        $cmd = sprintf('%s analyse -c %s %s --no-progress', $phpstanBin, $configFile, $fixtureFile);
+        exec($cmd, $output, $resultCode);
+
+        $expectedFile = $this->outputDir . '/Tests.Fixtures.MultipleDto.json';
+        $this->assertFileExists($expectedFile);
+
+        $json = (string) file_get_contents($expectedFile);
+        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        assert(is_array($data));
+
+        $this->assertValidJsonSchema($json);
+        $this->assertArrayHasKey('id', $data['properties']);
+        $this->assertArrayHasKey('age', $data['properties']);
+        
+        $this->assertContains('id', $data['required']);
+        $this->assertContains('age', $data['required']);
+    }
+
+    public function testSkipsUnsupportedTypes(): void
+    {
+        $configFile = $this->createTestConfig();
+        $fixtureFile = __DIR__ . '/../Fixtures/UnsupportedDto.php';
+        $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
+
+        $cmd = sprintf('%s analyse -c %s %s --no-progress', $phpstanBin, $configFile, $fixtureFile);
+        exec($cmd, $output, $resultCode);
+
+        $expectedFile = $this->outputDir . '/Tests.Fixtures.UnsupportedDto.json';
+        $this->assertFileExists($expectedFile);
+
+        $json = (string) file_get_contents($expectedFile);
+        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        assert(is_array($data));
+
+        $this->assertValidJsonSchema($json);
+        $this->assertArrayHasKey('id', $data['properties']);
+        $this->assertArrayNotHasKey('name', $data['properties'], 'Unsupported type (string) should be skipped');
+        
+        $this->assertContains('id', $data['required']);
+        $this->assertNotContains('name', $data['required'] ?? []);
+    }
+
     private function createTestConfig(): string
     {
         $configPath = $this->outputDir . '/test-config.neon';
