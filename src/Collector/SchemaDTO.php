@@ -28,14 +28,16 @@ final readonly class SchemaDTO
             throw new InvalidArgumentException('Data must be an array.');
         }
 
-        if (!is_string($data['schema'])) {
+        if (!isset($data['schema']) || !is_string($data['schema'])) {
             throw new InvalidArgumentException('Missing or invalid "schema". Expected serialized string.');
         }
 
-        $className = $data['className'];
-        /** @var Schema $schema */
-        $schema = unserialize($data['schema']);
+        $className = $data['className'] ?? null;
+        if (!is_string($className) || $className === '') {
+            throw new InvalidArgumentException('Missing or invalid "className".');
+        }
 
+        $schema = unserialize($data['schema']);
         if (!$schema instanceof Schema) {
             throw new InvalidArgumentException('Unserialized schema is not an instance of Schema interface.');
         }
