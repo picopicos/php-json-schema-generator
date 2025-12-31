@@ -49,6 +49,9 @@ Build a library that generates JSON Schema compatible with OpenAPI 3.1 directly 
 
 ## Documentation Maintenance
 - **Keep Updated**: Sync `docs/ARCHITECTURE.md` with code changes.
+- **Architectural Decisions (ADR)**: For every significant architectural decision or change in design pattern, create a new ADR in `docs/adr/`.
+    - **Unit of Change**: ADRs should be added per logical unit of change (e.g., introducing a new layer or pattern).
+    - **Design Intent**: Always refer to existing ADRs to understand the rationale behind the current design before proposing or implementing changes.
 - **Milestone Updates**: Update the GitHub Milestone description to reflect progress, new tasks, and technical considerations.
 - **Source of Truth**: The GitHub Milestone is the single source of truth for the project roadmap.
 
