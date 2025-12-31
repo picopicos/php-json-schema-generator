@@ -12,7 +12,7 @@ use PhpStanJsonSchema\Exception\UnsupportedTypeException;
 use PhpStanJsonSchema\Mapper\TypeMapperRegistry;
 
 /**
- * @implements Collector<ClassPropertyNode, PropertyDTO>
+ * @implements Collector<ClassPropertyNode, array{className: string, propertyName: string, schema: array<string, mixed>}>
  */
 class PropertyCollector implements Collector
 {
@@ -25,7 +25,7 @@ class PropertyCollector implements Collector
         return ClassPropertyNode::class;
     }
 
-    public function processNode(Node $node, Scope $scope): ?PropertyDTO
+    public function processNode(Node $node, Scope $scope): ?array
     {
         if (!$scope->isInClass()) {
             return null;
@@ -45,10 +45,10 @@ class PropertyCollector implements Collector
             return null;
         }
 
-        return new PropertyDTO(
-            className: $classReflection->getName(),
-            propertyName: $propertyName,
-            schema: $schema
-        );
+        return [
+            'className' => $classReflection->getName(),
+            'propertyName' => $propertyName,
+            'schema' => $schema->jsonSerialize(),
+        ];
     }
 }
