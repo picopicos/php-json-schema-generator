@@ -32,6 +32,9 @@ Build a library that generates JSON Schema compatible with OpenAPI 3.1 directly 
     - **Custom Assertions**: Reuse common logic (like JSON Schema validation) via Traits and Custom PHPUnit Constraints.
 10. **No `@var` Casting:** Do not use `/** @var Type $var */` to force type overrides, as it suppresses static analysis errors (similar to `as Type` in TS). Instead, use runtime assertions (`assert($var instanceof Type)`) or proper type checks (`if (!is_array($var)) ...`) to narrow types safely.
 11. **Exception Documentation:** Always document exceptions using `@throws` annotations in the PHPDoc block for any method that explicitly throws an exception or propagates a specific one.
+12. **DTOs over Arrays:** Prefer DTO classes over associative arrays for internal data passing.
+    - When receiving unstructured data (e.g., from `CollectedDataNode` or JSON), immediately convert it into a strictly typed DTO using a factory method (e.g., `fromArray()`) that performs validation and assertions.
+    - Avoid passing `array<string, mixed>` deep into the application logic.
 
 ## Development Workflow (TDD)
 1.  **Create Fixture:**

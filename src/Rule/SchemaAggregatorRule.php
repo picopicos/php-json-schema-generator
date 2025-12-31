@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace PhpStanJsonSchema\Rule;
 
 use PhpParser\Node;
-use PHPStan\Analyser\Scope;
-use PHPStan\Node\CollectedDataNode;
-use PHPStan\Rules\Rule;
 use PhpStanJsonSchema\Collector\PropertyCollector;
+use PhpStanJsonSchema\Collector\PropertyDTO;
 use PhpStanJsonSchema\Schema\ObjectSchema;
 use PhpStanJsonSchema\Schema\RawSchema;
 use PhpStanJsonSchema\Schema\SchemaMetadata;
 use PhpStanJsonSchema\Writer\SchemaWriter;
+use PHPStan\Analyser\Scope;
+use PHPStan\Node\CollectedDataNode;
+use PHPStan\Rules\Rule;
 
 /**
  * @implements Rule<CollectedDataNode>
@@ -30,15 +31,15 @@ class SchemaAggregatorRule implements Rule
 
     public function processNode(Node $node, Scope $scope): array
     {
-        /** @var array<string, list<array{className: class-string, propertyName: string, schema: array<string, mixed>}>> $collectedData */
         $collectedData = $node->get(PropertyCollector::class);
-
-        /** @var array<class-string, array<string, array{className: class-string, propertyName: string, schema: array<string, mixed>}>> $groupedByClass */
+        
+        /** @var array<class-string, array<string, PropertyDTO>> $groupedByClass */
         $groupedByClass = [];
 
         foreach ($collectedData as $properties) {
             foreach ($properties as $propertyData) {
-                $groupedByClass[$propertyData['className']][$propertyData['propertyName']] = $propertyData;
+                $dto = PropertyDTO::fromArray($propertyData);
+                $groupedByClass[$dto->className][$dto->propertyName] = $dto;
             }
         }
 
@@ -46,8 +47,8 @@ class SchemaAggregatorRule implements Rule
             $schemaProperties = [];
             $required = [];
 
-            foreach ($properties as $propertyName => $propertyData) {
-                $schemaProperties[$propertyName] = new RawSchema($propertyData['schema']);
+            foreach ($properties as $propertyName => $dto) {
+                $schemaProperties[$propertyName] = new RawSchema($dto->schema);
                 // For now, all properties are required
                 $required[] = $propertyName;
             }
