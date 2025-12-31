@@ -19,6 +19,18 @@ Build a library that generates JSON Schema compatible with OpenAPI 3.1 directly 
 3.  **No Runtime Reflection:** Always use PHPStan's `Type` objects.
 4.  **Final by Default:** Classes should be `final`.
 5.  **Type Safety:** Avoid `mixed`. Always use specific types or narrow unions. For arrays, specify keys and value types clearly (e.g., `array<string, string|int>`).
+6.  **Array Shapes:** When returning arrays with known keys (especially in `jsonSerialize`), always use PHPStan Array Shapes (e.g., `array{type: string, min?: int}`) instead of generic `array<string, mixed>`.
+7.  **Type Aliases:** Use `@phpstan-type` to define reusable array shapes. Name these types using **snake_case** (e.g., `schema_metadata_json`) to clearly distinguish them from class names.
+8.  **Data Providers:** Use `yield` (Generators) for PHPUnit Data Providers instead of returning arrays. Use `iterable` return types.
+    - **Usage**: For input/output validation or transformation logic, always prefer Data Providers over repetitive test methods.
+    - **Coverage**: Ensure comprehensive coverage, including happy paths, edge cases, and strictly defined **boundary values** (min/max, off-by-one errors).
+    - **Named Arguments**: Use **string keys** in the yielded array that match the test method's parameter names. This enables PHPUnit Named Arguments, making tests independent of parameter order and improving clarity.
+    - **Type Safety**: Use `@phpstan-param` and `@phpstan-return` with Data Providers to ensure type safety between the provider and the test method.
+9.  **Test Implementation:**
+    - **Structure Comparison**: Use `assertSame` with full array structures to verify JSON serialization results in a single, clear assertion.
+    - **Narrowing Types**: Use runtime `assert()` (e.g., `assert(is_array($data))`) instead of `/** @var */` to inform PHPStan about types in test methods.
+    - **Custom Assertions**: Reuse common logic (like JSON Schema validation) via Traits and Custom PHPUnit Constraints.
+10. **No `@var` Casting:** Do not use `/** @var Type $var */` to force type overrides, as it suppresses static analysis errors (similar to `as Type` in TS). Instead, use runtime assertions (`assert($var instanceof Type)`) or proper type checks (`if (!is_array($var)) ...`) to narrow types safely.
 
 ## Development Workflow (TDD)
 1.  **Create Fixture:**
