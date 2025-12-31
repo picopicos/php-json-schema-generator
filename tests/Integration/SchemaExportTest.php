@@ -28,18 +28,14 @@ class SchemaExportTest extends TestCase
         foreach ($json['files'] as $file => $errors) {
             foreach ($errors['messages'] as $error) {
                 if (str_starts_with($error['message'], 'SCHEMA_EXPORT:')) {
-                    /** @var array{class: string, property: string, type: string, min?: int, max?: int} $data */
+                    /** @var array{className: string, propertyName: string, schema: array{minimum: int, maximum: int}} $data */
                     $data = json_decode(substr($error['message'], 14), true);
-                    if ($data['property'] === 'rating') {
-                        $this->assertArrayHasKey('min', $data);
-                        $this->assertArrayHasKey('max', $data);
+                    if ($data['propertyName'] === 'rating') {
+                        $this->assertArrayHasKey('minimum', $data['schema']);
+                        $this->assertArrayHasKey('maximum', $data['schema']);
 
-                        if (isset($data['min'])) {
-                            $this->assertEquals(1, $data['min']);
-                        }
-                        if (isset($data['max'])) {
-                            $this->assertEquals(10, $data['max']);
-                        }
+                        $this->assertEquals(1, $data['schema']['minimum']);
+                        $this->assertEquals(10, $data['schema']['maximum']);
                         $found = true;
                     }
                 }

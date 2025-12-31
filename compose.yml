@@ -7,6 +7,8 @@ services:
         PHP_VERSION: 8.5.1
     user: "${UID}:${GID}"
     entrypoint: ["php"]
+    environment:
+      - XDEBUG_MODE
     volumes:
       - .:/app
 

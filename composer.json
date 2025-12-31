@@ -4,17 +4,18 @@
     "type": "phpstan-extension",
     "license": "MIT",
     "require": {
-        "php": ">=8.5.1",
+        "php": ">=8.4",
         "phpstan/phpstan": "^2.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.50",
+        "opis/json-schema": "^2.6",
         "phpunit/phpunit": "^11.0",
         "symfony/var-dumper": "^7.0"
     },
     "autoload": {
         "psr-4": {
-            "PhpJsonSchemaGenerator\\": "src/"
+            "PhpStanJsonSchema\\": "src/"
         }
     },
     "autoload-dev": {

@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace PhpJsonSchemaGenerator\Rule;
+namespace PhpStanJsonSchema\Rule;
 
-use PhpJsonSchemaGenerator\Collector\PropertyCollector;
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\CollectedDataNode;
 use PHPStan\Rules\Rule;
 use PHPStan\Rules\RuleErrorBuilder;
+use PhpStanJsonSchema\Collector\PropertyCollector;
 
 /**
  * @implements Rule<CollectedDataNode>
