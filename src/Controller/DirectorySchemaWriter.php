@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhpStanJsonSchema\Writer;
+namespace PhpStanJsonSchema\Controller;
 
 use PhpStanJsonSchema\Schema\Schema;
 use RuntimeException;

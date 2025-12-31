@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhpStanJsonSchema\Collector;
+namespace PhpStanJsonSchema\Controller;
 
 use InvalidArgumentException;
 use PhpStanJsonSchema\Schema\Schema;
@@ -37,7 +37,7 @@ final readonly class SchemaDTO
             throw new InvalidArgumentException('Missing or invalid "className".');
         }
 
-        $schema = unserialize($data['schema']);
+        $schema = unserialize(base64_decode($data['schema']));
         if (!$schema instanceof Schema) {
             throw new InvalidArgumentException('Unserialized schema is not an instance of Schema interface.');
         }

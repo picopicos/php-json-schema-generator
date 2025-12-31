@@ -98,9 +98,7 @@ OpenAPI 3.1 does not support Generics natively.
 
 ```text
 src/
-├── Collector/       # Phase 1: Extracts info from PHPStan
-├── Mapper/          # Phase 2: Converts Types to Schema DTOs (Chain of Responsibility)
-├── Schema/          # Phase 3: Schema Object Model (The IR)
-├── Registry/        # Schema Management & Reference Resolution
-└── Rule/            # Entrypoint: PHPStan Rule to trigger the pipeline
+├── Schema/          # [Model] Schema Objects (The IR)
+├── Mapper/          # [Logic] Converts Types to Schema (Registry, Mappers)
+└── Controller/      # [IO] PHPStan Hooks & File Output (Collector, Rule, Writer)
 ```

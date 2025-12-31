@@ -4,22 +4,24 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Collector;
 
-use PHPStan\Node\InClassNode;
-use PHPStan\Testing\PHPStanTestCase;
-use PhpStanJsonSchema\Builder\ClassSchemaBuilderInterface;
-use PhpStanJsonSchema\Collector\SchemaCollector;
+use PhpStanJsonSchema\Controller\SchemaCollector;
+use PhpStanJsonSchema\Mapper\Types\ObjectTypeMapperInterface;
 use PhpStanJsonSchema\Schema\ObjectSchema;
 use PhpStanJsonSchema\Schema\SchemaMetadata;
+use PHPStan\Analyser\Scope;
+use PHPStan\Node\InClassNode;
+use PHPStan\Testing\PHPStanTestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 use Tests\Integration\Fixtures\Integer\RangeDto;
 
 class SchemaCollectorTest extends PHPStanTestCase
 {
     private SchemaCollector $collector;
-    private ClassSchemaBuilderInterface&\PHPUnit\Framework\MockObject\MockObject $builder;
+    private ObjectTypeMapperInterface&\PHPUnit\Framework\MockObject\MockObject $builder;
 
     protected function setUp(): void
     {
-        $this->builder = $this->createMock(ClassSchemaBuilderInterface::class);
+        $this->builder = $this->createMock(ObjectTypeMapperInterface::class);
         $this->collector = new SchemaCollector($this->builder);
     }
 
@@ -43,6 +45,6 @@ class SchemaCollectorTest extends PHPStanTestCase
 
         $this->assertNotNull($result);
         $this->assertSame(RangeDto::class, $result['className']);
-        $this->assertSame(serialize($expectedSchema), $result['schema']);
+        $this->assertSame(base64_encode(serialize($expectedSchema)), $result['schema']);
     }
 }

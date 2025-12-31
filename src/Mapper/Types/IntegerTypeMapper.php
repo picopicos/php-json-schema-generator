@@ -2,13 +2,15 @@
 
 declare(strict_types=1);
 
-namespace PhpStanJsonSchema\Mapper;
+namespace PhpStanJsonSchema\Mapper\Types;
 
-use PHPStan\Type\IntegerRangeType;
-use PHPStan\Type\Type;
+use PhpStanJsonSchema\Mapper\TypeMapper;
 use PhpStanJsonSchema\Schema\IntegerSchema;
 use PhpStanJsonSchema\Schema\Schema;
 use PhpStanJsonSchema\Schema\SchemaMetadata;
+use PHPStan\Type\IntegerRangeType;
+use PHPStan\Type\IntegerType;
+use PHPStan\Type\Type;
 
 final readonly class IntegerTypeMapper implements TypeMapper
 {

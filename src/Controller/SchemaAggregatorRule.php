@@ -2,16 +2,14 @@
 
 declare(strict_types=1);
 
-namespace PhpStanJsonSchema\Rule;
+namespace PhpStanJsonSchema\Controller;
 
-use InvalidArgumentException;
 use PhpParser\Node;
+use PhpStanJsonSchema\Schema\ObjectSchema;
+use PhpStanJsonSchema\Schema\SchemaMetadata;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\CollectedDataNode;
 use PHPStan\Rules\Rule;
-use PhpStanJsonSchema\Collector\SchemaCollector;
-use PhpStanJsonSchema\Collector\SchemaDTO;
-use PhpStanJsonSchema\Writer\SchemaWriter;
 
 /**
  * @phpstan-import-type schema_data from SchemaCollector
@@ -35,13 +33,8 @@ class SchemaAggregatorRule implements Rule
 
         foreach ($collectedData as $fileSchemas) {
             foreach ($fileSchemas as $schemaData) {
-                try {
-                    $dto = SchemaDTO::fromArray($schemaData);
-                    $this->schemaWriter->write($dto->className, $dto->schema);
-                } catch (InvalidArgumentException $e) {
-                    // Log or ignore invalid data? For now, we rely on types.
-                    continue;
-                }
+                $dto = SchemaDTO::fromArray($schemaData);
+                $this->schemaWriter->write($dto->className, $dto->schema);
             }
         }
 

@@ -38,19 +38,20 @@ class SchemaExportTest extends TestCase
         $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
 
         $cmd = sprintf(
-            '%s analyse -c %s %s --no-progress',
+            '%s clear-result-cache -c %s && %s analyse -c %s %s --no-progress',
+            $phpstanBin,
+            $configFile,
             $phpstanBin,
             $configFile,
             $phpFile
         );
 
-        exec($cmd, $output, $resultCode);
-
-        $expectedFilename = str_replace('\\', '.', $className) . '.json';
-        $actualFile = $this->outputDir . '/' . $expectedFilename;
-
-        $this->assertFileExists($actualFile, 'Schema file was not generated: ' . implode("\n", $output));
-
+                exec($cmd, $output, $resultCode);
+        
+                $expectedFilename = str_replace('\\', '.', $className) . '.json';
+                $actualFile = $this->outputDir . '/' . $expectedFilename;
+        
+                $this->assertFileExists($actualFile, 'Schema file was not generated: ' . implode("\n", $output));
         $actualJson = (string) file_get_contents($actualFile);
         $expectedJson = (string) file_get_contents($jsonFile);
 

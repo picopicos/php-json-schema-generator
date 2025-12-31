@@ -2,25 +2,25 @@
 
 declare(strict_types=1);
 
-namespace Tests\Unit\Builder;
+namespace Tests\Unit\Mapper\Types;
 
-use PHPStan\Testing\PHPStanTestCase;
-use PhpStanJsonSchema\Builder\ClassSchemaBuilder;
 use PhpStanJsonSchema\Mapper\TypeMapper;
+use PhpStanJsonSchema\Mapper\Types\ObjectTypeMapper;
 use PhpStanJsonSchema\Schema\IntegerSchema;
 use PhpStanJsonSchema\Schema\ObjectSchema;
+use PHPStan\Testing\PHPStanTestCase;
 use Tests\Integration\Fixtures\Integer\RangeDto;
 
-class ClassSchemaBuilderTest extends PHPStanTestCase
+class ObjectTypeMapperTest extends PHPStanTestCase
 {
-    private ClassSchemaBuilder $builder;
+    private ObjectTypeMapper $mapper;
 
     protected function setUp(): void
     {
         $typeMapper = $this->createMock(TypeMapper::class);
         $typeMapper->method('map')->willReturn(new IntegerSchema(new \PhpStanJsonSchema\Schema\SchemaMetadata()));
-
-        $this->builder = new ClassSchemaBuilder($typeMapper);
+        
+        $this->mapper = new ObjectTypeMapper($typeMapper);
     }
 
     public function testItBuildsSchemaFromRealClassReflection(): void
@@ -29,7 +29,8 @@ class ClassSchemaBuilderTest extends PHPStanTestCase
         $classReflection = $reflectionProvider->getClass(RangeDto::class);
         $scope = $this->createMock(\PHPStan\Analyser\Scope::class);
 
-        $objectSchema = $this->builder->build($classReflection, $scope);
+        $objectSchema = $this->mapper->build($classReflection, $scope);
+
 
         $this->assertInstanceOf(ObjectSchema::class, $objectSchema);
         $this->assertArrayHasKey('rating', $objectSchema->properties);

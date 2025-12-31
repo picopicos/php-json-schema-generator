@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Collector;
 
 use InvalidArgumentException;
-use PhpStanJsonSchema\Collector\SchemaDTO;
+use PhpStanJsonSchema\Controller\SchemaDTO;
 use PhpStanJsonSchema\Schema\IntegerSchema;
 use PhpStanJsonSchema\Schema\SchemaMetadata;
 use PHPUnit\Framework\TestCase;
@@ -17,8 +17,8 @@ class SchemaDTOTest extends TestCase
     {
         $schema = new IntegerSchema(new SchemaMetadata());
         $data = [
-            'className' => stdClass::class,
-            'schema' => serialize($schema),
+            'className' => \stdClass::class,
+            'schema' => base64_encode(serialize($schema)),
         ];
 
         $dto = SchemaDTO::fromArray($data);
@@ -48,10 +48,10 @@ class SchemaDTOTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage('Unserialized schema is not an instance of Schema interface');
-
+        
         $data = [
-            'className' => stdClass::class,
-            'schema' => serialize(new stdClass()),
+            'className' => \stdClass::class,
+            'schema' => base64_encode(serialize(new \stdClass())),
         ];
 
         SchemaDTO::fromArray($data);
