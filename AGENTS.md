@@ -31,6 +31,7 @@ Build a library that generates JSON Schema compatible with OpenAPI 3.1 directly 
     - **Narrowing Types**: Use runtime `assert()` (e.g., `assert(is_array($data))`) instead of `/** @var */` to inform PHPStan about types in test methods.
     - **Custom Assertions**: Reuse common logic (like JSON Schema validation) via Traits and Custom PHPUnit Constraints.
 10. **No `@var` Casting:** Do not use `/** @var Type $var */` to force type overrides, as it suppresses static analysis errors (similar to `as Type` in TS). Instead, use runtime assertions (`assert($var instanceof Type)`) or proper type checks (`if (!is_array($var)) ...`) to narrow types safely.
+11. **Exception Documentation:** Always document exceptions using `@throws` annotations in the PHPDoc block for any method that explicitly throws an exception or propagates a specific one.
 
 ## Development Workflow (TDD)
 1.  **Create Fixture:**

@@ -180,5 +180,20 @@ class IntegerSchemaTest extends TestCase
             'constructorArgs' => ['metadata' => $meta, 'maximum' => 10, 'default' => 11],
             'expectedMessage' => 'Invalid schema constraint "default": Default value is greater than maximum',
         ];
+
+        yield 'default_not_in_enum' => [
+            'constructorArgs' => ['metadata' => $meta, 'default' => 5, 'enum' => [1, 2, 3]],
+            'expectedMessage' => 'Invalid schema constraint "default": Default value must be one of the enum values',
+        ];
+
+        yield 'enum_under_min' => [
+            'constructorArgs' => ['metadata' => $meta, 'minimum' => 5, 'enum' => [4, 5, 6]],
+            'expectedMessage' => 'Invalid schema constraint "enum": Enum value is lower than minimum',
+        ];
+
+        yield 'enum_over_max' => [
+            'constructorArgs' => ['metadata' => $meta, 'maximum' => 5, 'enum' => [4, 5, 6]],
+            'expectedMessage' => 'Invalid schema constraint "enum": Enum value is greater than maximum',
+        ];
     }
 }

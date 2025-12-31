@@ -17,10 +17,21 @@ class MatchesJsonSchema extends Constraint
     /** @var list<string> */
     private array $errors = [];
 
+    /**
+     * @throws InvalidArgumentException
+     */
     public function __construct(string|object $schema)
     {
         // Decode if string, otherwise use object as is
-        $decoded = is_string($schema) ? json_decode($schema) : $schema;
+        if (is_string($schema)) {
+            try {
+                $decoded = json_decode($schema, false, 512, JSON_THROW_ON_ERROR);
+            } catch (\JsonException $e) {
+                throw new InvalidArgumentException('Schema string is not valid JSON: ' . $e->getMessage(), 0, $e);
+            }
+        } else {
+            $decoded = $schema;
+        }
 
         if (!$decoded instanceof stdClass) {
             throw new InvalidArgumentException('Schema must be a valid JSON object or string decoding to an object.');
