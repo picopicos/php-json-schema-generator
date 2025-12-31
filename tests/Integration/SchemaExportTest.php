@@ -12,7 +12,9 @@ class SchemaExportTest extends TestCase
     {
         // Run PHPStan analysis on the fixture
         $cmd = sprintf(
-            '%s/../../vendor/bin/phpstan analyse -c %s/../phpstan.neon %s/../Fixtures/RangeDto.php --error-format=json --no-progress',
+            '%s/../../vendor/bin/phpstan clear-result-cache -c %s/../phpstan.neon && %s/../../vendor/bin/phpstan analyse -c %s/../phpstan.neon %s/../Fixtures/RangeDto.php --error-format=json --no-progress',
+            __DIR__,
+            __DIR__,
             __DIR__,
             __DIR__,
             __DIR__
