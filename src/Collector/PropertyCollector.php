@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-namespace PhpJsonSchemaGenerator\Collector;
+namespace PhpStanJsonSchema\Collector;
 
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;
 use PHPStan\Collectors\Collector;
 use PHPStan\Node\ClassPropertyNode;
 use PHPStan\Type\IntegerRangeType;
-use PHPStan\Type\VerbosityLevel;
+use PhpStanJsonSchema\Schema\IntegerSchema;
+use PhpStanJsonSchema\Schema\SchemaMetadata;
 
 /**
- * @implements Collector<ClassPropertyNode, array<string, mixed>>
+ * @implements Collector<ClassPropertyNode, PropertyDTO>
  */
 class PropertyCollector implements Collector
 {
@@ -21,7 +22,7 @@ class PropertyCollector implements Collector
         return ClassPropertyNode::class;
     }
 
-    public function processNode(Node $node, Scope $scope)
+    public function processNode(Node $node, Scope $scope): ?PropertyDTO
     {
         if (!$scope->isInClass()) {
             return null;
@@ -33,18 +34,20 @@ class PropertyCollector implements Collector
         $propertyReflection = $classReflection->getProperty($propertyName, $scope);
         $resolvedType = $propertyReflection->getReadableType();
 
-        $data = [
-            'class' => $classReflection->getName(),
-            'property' => $propertyName,
-            'type' => $resolvedType->describe(VerbosityLevel::precise()),
-        ];
-
-        // Specific handling for IntegerRangeType (E2E target)
+        // Temporary logic for POC (Will be moved to TypeMapper in Phase 2)
+        $schema = new IntegerSchema(new SchemaMetadata());
         if ($resolvedType instanceof IntegerRangeType) {
-            $data['min'] = $resolvedType->getMin();
-            $data['max'] = $resolvedType->getMax();
+            $schema = new IntegerSchema(
+                new SchemaMetadata(),
+                minimum: $resolvedType->getMin(),
+                maximum: $resolvedType->getMax()
+            );
         }
 
-        return $data;
+        return new PropertyDTO(
+            className: $classReflection->getName(),
+            propertyName: $propertyName,
+            schema: $schema
+        );
     }
 }
