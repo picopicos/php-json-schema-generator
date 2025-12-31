@@ -65,7 +65,7 @@ We employ a **Schema Registry** to manage type definitions, reusability, and rec
 ## 3. Design Strategies
 
 ### 3.1. Required vs Nullable
-We strictly separate "Required" (Key existence) and "Nullable" (Value type).
+We strictly separate "Required" (Key existence) and "Nullable" (Value type). 
 
 | PHP Definition | Schema Meaning | Responsibility | Generated Schema |
 | :--- | :--- | :--- | :--- |
@@ -74,8 +74,25 @@ We strictly separate "Required" (Key existence) and "Nullable" (Value type).
 | `public int $a = 1;` | **Optional**, Not Null | Collector: Optional | `{"type": "integer"}` |
 
 ### 3.2. Naming Strategy
+#### Property Names
 - **MVP**: Use PHP property names as-is (e.g., `userProfile` -> `userProfile`).
-- **Future**: Support `snake_case` conversion or `#[JsonProperty]` override via a customizable naming strategy.
+
+#### Component Names (Schema Registry)
+To ensure compatibility with OpenAPI component names (`^[a-zA-Z0-9\.\-_]+$`), we sanitize PHP Class names.
+- **Strategy**: **FQCN Sanitization**
+- **Rule**: Replace backslashes `\` with dots `.` (or hyphens `-`).
+- **Example**: `App\DTO\User` -> `App.DTO.User`
+
+### 3.3. Generics Strategy
+OpenAPI 3.1 does not support Generics natively.
+- **Strategy**: **Inline Expansion**
+- **Rule**: Generic objects (e.g., `ApiResponse<User>`) are **NOT** registered as reusable components. They are expanded inline as `type: object` with their specific properties resolved in place.
+- **Reasoning**: `ApiResponse<User>` and `ApiResponse<Post>` are distinct schemas and cannot share a single `$ref`.
+
+### 3.4. Verification Strategy
+- **Tool**: `ajv-cli` (Draft 2020-12)
+- **Pipeline**: CI (GitHub Actions)
+- **Process**: All generated JSON files in `tests/Fixtures/Expected` are validated against the JSON Schema Meta-Schema to ensure compliance.
 
 ## 4. Directory Structure
 
