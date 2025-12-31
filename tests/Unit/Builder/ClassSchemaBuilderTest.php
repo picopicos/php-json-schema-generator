@@ -9,7 +9,7 @@ use PhpStanJsonSchema\Builder\ClassSchemaBuilder;
 use PhpStanJsonSchema\Mapper\TypeMapper;
 use PhpStanJsonSchema\Schema\IntegerSchema;
 use PhpStanJsonSchema\Schema\ObjectSchema;
-use Tests\Fixtures\Integer\RangeDto;
+use Tests\Integration\Fixtures\Integer\RangeDto;
 
 class ClassSchemaBuilderTest extends PHPStanTestCase
 {

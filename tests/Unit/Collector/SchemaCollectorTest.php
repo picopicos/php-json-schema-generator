@@ -10,7 +10,7 @@ use PhpStanJsonSchema\Builder\ClassSchemaBuilderInterface;
 use PhpStanJsonSchema\Collector\SchemaCollector;
 use PhpStanJsonSchema\Schema\ObjectSchema;
 use PhpStanJsonSchema\Schema\SchemaMetadata;
-use Tests\Fixtures\Integer\RangeDto;
+use Tests\Integration\Fixtures\Integer\RangeDto;
 
 class SchemaCollectorTest extends PHPStanTestCase
 {

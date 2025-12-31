@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixtures\Object;
+namespace Tests\Integration\Fixtures\Object;
 
 final class MultipleDto
 {

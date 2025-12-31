@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixtures\Integer;
+namespace Tests\Integration\Fixtures\Integer;
 
 final class RangeDto
 {

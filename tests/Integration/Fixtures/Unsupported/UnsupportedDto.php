@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Fixtures\Unsupported;
+namespace Tests\Integration\Fixtures\Unsupported;
 
 final class UnsupportedDto
 {
