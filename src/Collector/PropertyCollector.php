@@ -40,6 +40,7 @@ class PropertyCollector implements Collector
         try {
             $schema = $this->typeMapper->map($resolvedType);
         } catch (UnsupportedTypeException) {
+            // TODO: Implement warning/error reporting based on user configuration
             // Skip unsupported types for now to avoid crashing analysis
             return null;
         }
