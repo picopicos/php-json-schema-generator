@@ -8,15 +8,18 @@ use PhpParser\Node;
 use PHPStan\Analyser\Scope;
 use PHPStan\Collectors\Collector;
 use PHPStan\Node\ClassPropertyNode;
-use PHPStan\Type\IntegerRangeType;
-use PhpStanJsonSchema\Schema\IntegerSchema;
-use PhpStanJsonSchema\Schema\SchemaMetadata;
+use PhpStanJsonSchema\Exception\UnsupportedTypeException;
+use PhpStanJsonSchema\Mapper\TypeMapperRegistry;
 
 /**
  * @implements Collector<ClassPropertyNode, PropertyDTO>
  */
 class PropertyCollector implements Collector
 {
+    public function __construct(
+        private readonly TypeMapperRegistry $typeMapper
+    ) {}
+
     public function getNodeType(): string
     {
         return ClassPropertyNode::class;
@@ -34,14 +37,11 @@ class PropertyCollector implements Collector
         $propertyReflection = $classReflection->getProperty($propertyName, $scope);
         $resolvedType = $propertyReflection->getReadableType();
 
-        // Temporary logic for POC (Will be moved to TypeMapper in Phase 2)
-        $schema = new IntegerSchema(new SchemaMetadata());
-        if ($resolvedType instanceof IntegerRangeType) {
-            $schema = new IntegerSchema(
-                new SchemaMetadata(),
-                minimum: $resolvedType->getMin(),
-                maximum: $resolvedType->getMax()
-            );
+        try {
+            $schema = $this->typeMapper->map($resolvedType);
+        } catch (UnsupportedTypeException) {
+            // Skip unsupported types for now to avoid crashing analysis
+            return null;
         }
 
         return new PropertyDTO(
