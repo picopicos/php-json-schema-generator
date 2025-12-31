@@ -1,5 +1,15 @@
 services:
 	-
+		class: PhpStanJsonSchema\Mapper\IntegerTypeMapper
+		tags:
+			- phpstan_json_schema.type_mapper
+
+	-
+		class: PhpStanJsonSchema\Mapper\TypeMapperRegistry
+		arguments:
+			mappers: tagged(phpstan_json_schema.type_mapper)
+
+	-
 		class: PhpStanJsonSchema\Collector\PropertyCollector
 		tags:
 			- phpstan.collector
