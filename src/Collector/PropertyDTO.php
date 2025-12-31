@@ -29,30 +29,34 @@ final readonly class PropertyDTO
             throw new InvalidArgumentException('Data must be an array.');
         }
 
-        if (!isset($data['className']) || !is_string($data['className'])) {
+        $className = $data['className'] ?? null;
+        $propertyName = $data['propertyName'] ?? null;
+        $schemaData = $data['schema'] ?? null;
+
+        if (!is_string($className) || $className === '') {
             throw new InvalidArgumentException('Missing or invalid "className".');
         }
 
-        if (!isset($data['propertyName']) || !is_string($data['propertyName'])) {
+        if (!is_string($propertyName)) {
             throw new InvalidArgumentException('Missing or invalid "propertyName".');
         }
 
-        if (!isset($data['schema']) || !is_array($data['schema'])) {
+        if (!is_array($schemaData)) {
             throw new InvalidArgumentException('Missing or invalid "schema".');
         }
 
-        /** @var class-string $className */
-        $className = $data['className'];
+        // Narrowing to class-string
+        assert(class_exists($className) || interface_exists($className) || trait_exists($className));
 
-        $schema = $data['schema'];
-        // PHPStan cannot easily verify array keys are strings from mixed input without loop or explicit cast
-        // For DTO purposes, we assume standard usage, but let's be safer
-        // assert(array_is_list($schema) === false); // Too strict? JSON object is assoc array.
+        $schema = [];
+        foreach ($schemaData as $key => $value) {
+            assert(is_string($key));
+            $schema[$key] = $value;
+        }
 
         return new self(
             className: $className,
-            propertyName: $data['propertyName'],
-            /** @var array<string, mixed> $schema */
+            propertyName: $propertyName,
             schema: $schema,
         );
     }

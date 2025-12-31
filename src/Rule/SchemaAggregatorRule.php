@@ -33,7 +33,6 @@ class SchemaAggregatorRule implements Rule
     {
         $collectedData = $node->get(PropertyCollector::class);
         
-        /** @var array<class-string, array<string, PropertyDTO>> $groupedByClass */
         $groupedByClass = [];
 
         foreach ($collectedData as $properties) {
