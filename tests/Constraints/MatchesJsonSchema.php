@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Constraints;
 
 use InvalidArgumentException;
+use JsonException;
 use Opis\JsonSchema\Errors\ErrorFormatter;
 use Opis\JsonSchema\Validator;
 use PHPUnit\Framework\Constraint\Constraint;
@@ -26,7 +27,7 @@ class MatchesJsonSchema extends Constraint
         if (is_string($schema)) {
             try {
                 $decoded = json_decode($schema, false, 512, JSON_THROW_ON_ERROR);
-            } catch (\JsonException $e) {
+            } catch (JsonException $e) {
                 throw new InvalidArgumentException('Schema string is not valid JSON: ' . $e->getMessage(), 0, $e);
             }
         } else {
