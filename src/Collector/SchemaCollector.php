@@ -34,12 +34,10 @@ class SchemaCollector implements Collector
      */
     public function processNode(Node $node, Scope $scope): ?array
     {
-        if (!$scope->isInClass()) {
-            return null;
-        }
-
+        // PHPStan guarantees this is InClassNode due to getNodeType()
+        /** @var InClassNode $node */
         $classReflection = $node->getClassReflection();
-
+        
         // Skip anonymous classes or internal classes if necessary
         if ($classReflection->isAnonymous()) {
             return null;

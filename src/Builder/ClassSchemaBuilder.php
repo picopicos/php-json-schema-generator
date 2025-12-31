@@ -36,12 +36,14 @@ final readonly class ClassSchemaBuilder implements ClassSchemaBuilderInterface
 
             try {
                 $schema = $this->typeMapper->map($type);
-                $properties[$propertyName] = $schema;
-                // TODO: Implement required/optional logic based on:
-                // 1. Initialized properties (has default value) -> Optional
-                // 2. Nullable types -> Required but can be null (unless uninitialized)
-                // 3. Strict typed uninitialized -> Required
-                $required[] = $propertyName;
+                if ($schema !== null) {
+                    $properties[$propertyName] = $schema;
+                    // TODO: Implement required/optional logic based on:
+                    // 1. Initialized properties (has default value) -> Optional
+                    // 2. Nullable types -> Required but can be null (unless uninitialized)
+                    // 3. Strict typed uninitialized -> Required
+                    $required[] = $propertyName;
+                }
             } catch (UnsupportedTypeException) {
                 // TODO: Handle unsupported types (warning/log)
                 continue;

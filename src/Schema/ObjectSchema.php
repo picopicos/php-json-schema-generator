@@ -10,7 +10,7 @@ use LogicException;
  * @phpstan-import-type schema_metadata_json from SchemaMetadata
  * @phpstan-type object_schema_json array{
  *     type: 'object',
- *     properties: array<string, array<string, mixed>>,
+ *     properties?: array<string, array<string, mixed>>,
  *     required?: list<string>,
  *     additionalProperties: bool
  * } & schema_metadata_json
@@ -43,7 +43,7 @@ final readonly class ObjectSchema implements Schema
 
         $schema = array_filter([
             'type' => 'object',
-            'properties' => $properties,
+            'properties' => $properties !== [] ? $properties : null,
             'required' => $this->required !== [] ? $this->required : null,
             'additionalProperties' => $this->additionalProperties,
         ], fn($value) => $value !== null);
