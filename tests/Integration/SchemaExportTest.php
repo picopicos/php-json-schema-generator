@@ -27,98 +27,183 @@ class SchemaExportTest extends TestCase
         $this->removeDirectory($this->outputDir);
     }
 
-    public function testExportsIntegerRange(): void
-    {
-        $configFile = $this->createTestConfig();
-        $fixtureFile = __DIR__ . '/../Fixtures/RangeDto.php';
-        $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
+        public function testExportsIntegerRange(): void
 
-        // Run PHPStan analysis on the fixture
-        $cmd = sprintf(
-            '%s analyse -c %s %s --no-progress',
-            $phpstanBin,
-            $configFile,
-            $fixtureFile
-        );
+        {
 
-        exec($cmd, $output, $resultCode);
+            $configFile = $this->createTestConfig();
 
+            $fixtureFile = __DIR__ . '/../Fixtures/Integer/RangeDto.php';
 
+            $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
 
-        $expectedFile = $this->outputDir . '/Tests.Fixtures.RangeDto.json';
+    
 
-        $this->assertFileExists($expectedFile, 'Schema file was not generated: ' . implode("\n", $output));
+            // Run PHPStan analysis on the fixture
 
-        $json = (string) file_get_contents($expectedFile);
-        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        assert(is_array($data));
+            $cmd = sprintf(
 
-        // Validate structure
-        $this->assertValidJsonSchema($json);
+                '%s analyse -c %s %s --no-progress',
 
-        // Validate content
-        $this->assertSame('object', $data['type']);
-        $this->assertArrayHasKey('properties', $data);
-        assert(is_array($data['properties']));
-        $this->assertArrayHasKey('rating', $data['properties']);
+                $phpstanBin,
 
-        $rating = $data['properties']['rating'];
-        assert(is_array($rating));
-        $this->assertSame('integer', $rating['type']);
-        $this->assertSame(1, $rating['minimum']);
-        $this->assertSame(10, $rating['maximum']);
+                $configFile,
 
-        assert(is_iterable($data['required'] ?? []));
-        $this->assertContains('rating', $data['required'] ?? []);
-    }
+                $fixtureFile
 
-    public function testExportsMultipleProperties(): void
-    {
-        $configFile = $this->createTestConfig();
-        $fixtureFile = __DIR__ . '/../Fixtures/MultipleDto.php';
-        $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
+            );
 
-        $cmd = sprintf('%s analyse -c %s %s --no-progress', $phpstanBin, $configFile, $fixtureFile);
-        exec($cmd, $output, $resultCode);
+    
 
-        $expectedFile = $this->outputDir . '/Tests.Fixtures.MultipleDto.json';
-        $this->assertFileExists($expectedFile);
+            exec($cmd, $output, $resultCode);
 
-        $json = (string) file_get_contents($expectedFile);
-        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        assert(is_array($data));
+            
 
-        $this->assertValidJsonSchema($json);
-        $this->assertArrayHasKey('id', $data['properties']);
-        $this->assertArrayHasKey('age', $data['properties']);
-        
-        $this->assertContains('id', $data['required']);
-        $this->assertContains('age', $data['required']);
-    }
+            $expectedFile = $this->outputDir . '/Tests.Fixtures.Integer.RangeDto.json';
 
-    public function testSkipsUnsupportedTypes(): void
-    {
-        $configFile = $this->createTestConfig();
-        $fixtureFile = __DIR__ . '/../Fixtures/UnsupportedDto.php';
-        $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
+            $this->assertFileExists($expectedFile, 'Schema file was not generated: ' . implode("\n", $output));
 
-        $cmd = sprintf('%s analyse -c %s %s --no-progress', $phpstanBin, $configFile, $fixtureFile);
-        exec($cmd, $output, $resultCode);
+    
 
-        $expectedFile = $this->outputDir . '/Tests.Fixtures.UnsupportedDto.json';
-        $this->assertFileExists($expectedFile);
+            $json = (string) file_get_contents($expectedFile);
 
-        $json = (string) file_get_contents($expectedFile);
-        $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
-        assert(is_array($data));
+            $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
-        $this->assertValidJsonSchema($json);
-        $this->assertArrayHasKey('id', $data['properties']);
-        $this->assertArrayNotHasKey('name', $data['properties'], 'Unsupported type (string) should be skipped');
-        
-        $this->assertContains('id', $data['required']);
-        $this->assertNotContains('name', $data['required'] ?? []);
-    }
+            assert(is_array($data));
+
+    
+
+            // Validate structure
+
+            $this->assertValidJsonSchema($json);
+
+    
+
+            // Validate content
+
+            $this->assertSame('object', $data['type']);
+
+            $this->assertArrayHasKey('properties', $data);
+
+            assert(is_array($data['properties']));
+
+            $this->assertArrayHasKey('rating', $data['properties']);
+
+            
+
+            $rating = $data['properties']['rating'];
+
+            assert(is_array($rating));
+
+            $this->assertSame('integer', $rating['type']);
+
+            $this->assertSame(1, $rating['minimum']);
+
+            $this->assertSame(10, $rating['maximum']);
+
+    
+
+            assert(is_iterable($data['required'] ?? []));
+
+            $this->assertContains('rating', $data['required'] ?? []);
+
+        }
+
+    
+
+        public function testExportsMultipleProperties(): void
+
+        {
+
+            $configFile = $this->createTestConfig();
+
+            $fixtureFile = __DIR__ . '/../Fixtures/Object/MultipleDto.php';
+
+            $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
+
+    
+
+            $cmd = sprintf('%s analyse -c %s %s --no-progress', $phpstanBin, $configFile, $fixtureFile);
+
+            exec($cmd, $output, $resultCode);
+
+    
+
+            $expectedFile = $this->outputDir . '/Tests.Fixtures.Object.MultipleDto.json';
+
+            $this->assertFileExists($expectedFile);
+
+    
+
+            $json = (string) file_get_contents($expectedFile);
+
+            $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+            assert(is_array($data));
+
+    
+
+            $this->assertValidJsonSchema($json);
+
+            $this->assertArrayHasKey('id', $data['properties']);
+
+            $this->assertArrayHasKey('age', $data['properties']);
+
+            
+
+            $this->assertContains('id', $data['required']);
+
+            $this->assertContains('age', $data['required']);
+
+        }
+
+    
+
+        public function testSkipsUnsupportedTypes(): void
+
+        {
+
+            $configFile = $this->createTestConfig();
+
+            $fixtureFile = __DIR__ . '/../Fixtures/Unsupported/UnsupportedDto.php';
+
+            $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
+
+    
+
+            $cmd = sprintf('%s analyse -c %s %s --no-progress', $phpstanBin, $configFile, $fixtureFile);
+
+            exec($cmd, $output, $resultCode);
+
+    
+
+            $expectedFile = $this->outputDir . '/Tests.Fixtures.Unsupported.UnsupportedDto.json';
+
+            $this->assertFileExists($expectedFile);
+
+    
+
+            $json = (string) file_get_contents($expectedFile);
+
+            $data = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+            assert(is_array($data));
+
+    
+
+            $this->assertValidJsonSchema($json);
+
+            $this->assertArrayHasKey('id', $data['properties']);
+
+            $this->assertArrayNotHasKey('name', $data['properties'], 'Unsupported type (string) should be skipped');
+
+            
+
+            $this->assertContains('id', $data['required']);
+
+            $this->assertNotContains('name', $data['required'] ?? []);
+
+        }
 
     private function createTestConfig(): string
     {
