@@ -36,6 +36,11 @@ final readonly class ClassSchemaBuilder implements ClassSchemaBuilderInterface
             }
 
             $propertyReflection = $classReflection->getProperty($propertyName, $scope);
+
+            if (!$propertyReflection->isPublic()) {
+                continue;
+            }
+
             $type = $propertyReflection->getReadableType();
 
             try {

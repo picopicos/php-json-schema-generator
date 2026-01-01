@@ -30,7 +30,7 @@ final readonly class DirectorySchemaWriter implements SchemaWriter
 
     private function ensureDirectoryExists(): void
     {
-        if (!is_dir($this->outputDirectory) && !mkdir($this->outputDirectory, 0o777, true) && !is_dir($this->outputDirectory)) {
+        if (!is_dir($this->outputDirectory) && !mkdir($this->outputDirectory, 0o755, true) && !is_dir($this->outputDirectory)) {
             throw new RuntimeException(sprintf('Directory "%s" was not created', $this->outputDirectory));
         }
     }

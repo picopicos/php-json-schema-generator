@@ -71,7 +71,9 @@ final readonly class SchemaDTO
         }
 
         // Narrowing to class-string
-        assert(class_exists($className) || interface_exists($className) || trait_exists($className));
+        if (!class_exists($className) && !interface_exists($className) && !trait_exists($className)) {
+            throw new InvalidArgumentException(sprintf('Class "%s" does not exist.', $className));
+        }
 
         return new self(
             className: $className,
