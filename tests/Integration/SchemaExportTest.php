@@ -20,11 +20,15 @@ class SchemaExportTest extends TestCase
             __DIR__
         );
 
-        $output = shell_exec($cmd);
-        $this->assertIsString($output, 'shell_exec returned null or false');
+        $output = (string) shell_exec($cmd);
+        $jsonStart = strpos($output, '{');
+        if ($jsonStart === false) {
+            $this->fail('No JSON output found. Output: ' . $output);
+        }
+        $jsonContent = substr($output, $jsonStart);
 
         /** @var array{files: array<string, array{messages: list<array{message: string, line: int}>}>} $json */
-        $json = json_decode($output, true);
+        $json = json_decode($jsonContent, true);
 
         $found = false;
         foreach ($json['files'] as $file => $errors) {
