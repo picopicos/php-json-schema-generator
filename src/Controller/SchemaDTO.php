@@ -7,6 +7,18 @@ namespace PhpStanJsonSchema\Controller;
 use InvalidArgumentException;
 use PhpStanJsonSchema\Schema\Schema;
 
+/**
+ * Data Transfer Object to transport Schema objects between Collector and Rule.
+ *
+ * This DTO handles the serialization of the Schema object to ensure it can be
+ * safely passed through PHPStan's collection mechanism (which requires return values
+ * to be serializable/cacheable arrays).
+ *
+ * @phpstan-type schema_data array{
+ *     class_name: class-string,
+ *     serialized_schema: string
+ * }
+ */
 final readonly class SchemaDTO
 {
     /**
@@ -16,6 +28,17 @@ final readonly class SchemaDTO
         public string $className,
         public Schema $schema,
     ) {}
+
+    /**
+     * @return schema_data
+     */
+    public function toArray(): array
+    {
+        return [
+            'class_name' => $this->className,
+            'serialized_schema' => base64_encode(serialize($this->schema)),
+        ];
+    }
 
     /**
      * @param mixed $data
@@ -28,16 +51,16 @@ final readonly class SchemaDTO
             throw new InvalidArgumentException('Data must be an array.');
         }
 
-        if (!isset($data['schema']) || !is_string($data['schema'])) {
-            throw new InvalidArgumentException('Missing or invalid "schema". Expected serialized string.');
-        }
-
-        $className = $data['className'] ?? null;
+        $className = $data['class_name'] ?? null;
         if (!is_string($className) || $className === '') {
-            throw new InvalidArgumentException('Missing or invalid "className".');
+            throw new InvalidArgumentException('Missing or invalid "class_name".');
         }
 
-        $serializedSchema = base64_decode($data['schema'], true);
+        if (!isset($data['serialized_schema']) || !is_string($data['serialized_schema'])) {
+            throw new InvalidArgumentException('Missing or invalid "serialized_schema". Expected serialized string.');
+        }
+
+        $serializedSchema = base64_decode($data['serialized_schema'], true);
         if ($serializedSchema === false) {
             throw new InvalidArgumentException('Invalid base64 encoded schema.');
         }

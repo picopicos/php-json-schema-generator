@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhpStanJsonSchema\Mapper;
 
+use InvalidArgumentException;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PhpStanJsonSchema\Exception\UnsupportedTypeException;
@@ -18,6 +19,10 @@ final readonly class ClassSchemaBuilder implements ClassSchemaBuilderInterface
 
     public function build(ClassReflection $classReflection, Scope $scope): ObjectSchema
     {
+        if ($classReflection->isAnonymous()) {
+            throw new InvalidArgumentException('Anonymous classes are not supported for schema generation.');
+        }
+
         $properties = [];
         $required = [];
 

@@ -9,13 +9,9 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Collectors\Collector;
 use PHPStan\Node\InClassNode;
 use PhpStanJsonSchema\Mapper\ClassSchemaBuilderInterface;
-use PhpStanJsonSchema\Schema\Schema;
 
 /**
- * @phpstan-type schema_data array{
- *     className: class-string,
- *     schema: string
- * }
+ * @phpstan-import-type schema_data from SchemaDTO
  * @implements Collector<InClassNode, schema_data>
  */
 class SchemaCollector implements Collector
@@ -43,9 +39,6 @@ class SchemaCollector implements Collector
 
         $schema = $this->schemaBuilder->build($classReflection, $scope);
 
-        return [
-            'className' => $classReflection->getName(),
-            'schema' => base64_encode(serialize($schema)),
-        ];
+        return (new SchemaDTO($classReflection->getName(), $schema))->toArray();
     }
 }

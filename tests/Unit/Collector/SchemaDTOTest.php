@@ -17,14 +17,25 @@ class SchemaDTOTest extends TestCase
     {
         $schema = new IntegerSchema(new SchemaMetadata());
         $data = [
-            'className' => stdClass::class,
-            'schema' => base64_encode(serialize($schema)),
+            'class_name' => stdClass::class,
+            'serialized_schema' => base64_encode(serialize($schema)),
         ];
 
         $dto = SchemaDTO::fromArray($data);
 
         $this->assertSame(stdClass::class, $dto->className);
         $this->assertInstanceOf(IntegerSchema::class, $dto->schema);
+    }
+
+    public function testItSerializesObjectToArray(): void
+    {
+        $schema = new IntegerSchema(new SchemaMetadata());
+        $dto = new SchemaDTO(stdClass::class, $schema);
+
+        $array = $dto->toArray();
+
+        $this->assertSame(stdClass::class, $array['class_name']);
+        $this->assertEquals($schema, unserialize(base64_decode($array['serialized_schema'])));
     }
 
     public function testItThrowsExceptionIfDataIsNotArray(): void
@@ -37,10 +48,10 @@ class SchemaDTOTest extends TestCase
     public function testItThrowsExceptionIfSchemaIsNotString(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('Missing or invalid "schema"');
+        $this->expectExceptionMessage('Missing or invalid "serialized_schema"');
         SchemaDTO::fromArray([
-            'className' => stdClass::class,
-            'schema' => ['some' => 'array'], // Not serialized string
+            'class_name' => stdClass::class,
+            'serialized_schema' => ['some' => 'array'], // Not serialized string
         ]);
     }
 
@@ -50,8 +61,8 @@ class SchemaDTOTest extends TestCase
         $this->expectExceptionMessage('Unserialized schema is not an instance of Schema interface');
 
         $data = [
-            'className' => stdClass::class,
-            'schema' => base64_encode(serialize(new stdClass())),
+            'class_name' => stdClass::class,
+            'serialized_schema' => base64_encode(serialize(new stdClass())),
         ];
 
         SchemaDTO::fromArray($data);

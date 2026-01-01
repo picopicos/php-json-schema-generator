@@ -10,7 +10,7 @@ use PHPStan\Node\CollectedDataNode;
 use PHPStan\Rules\Rule;
 
 /**
- * @phpstan-import-type schema_data from SchemaCollector
+ * @phpstan-import-type schema_data from SchemaDTO
  * @implements Rule<CollectedDataNode>
  */
 class SchemaAggregatorRule implements Rule

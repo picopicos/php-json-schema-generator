@@ -42,7 +42,7 @@ class SchemaCollectorTest extends PHPStanTestCase
         $result = $this->collector->processNode($node, $scope);
 
         $this->assertNotNull($result);
-        $this->assertSame(RangeDto::class, $result['className']);
-        $this->assertSame(base64_encode(serialize($expectedSchema)), $result['schema']);
+        $this->assertSame(RangeDto::class, $result['class_name']);
+        $this->assertSame(base64_encode(serialize($expectedSchema)), $result['serialized_schema']);
     }
 }
