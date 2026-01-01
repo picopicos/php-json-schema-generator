@@ -1,3 +1,12 @@
+parametersSchema:
+	phpstanJsonSchema: structure([
+		outputDirectory: string()
+	])
+
+parameters:
+	phpstanJsonSchema:
+		outputDirectory: %currentWorkingDirectory%/output
+
 services:
 	-
 		class: PhpStanJsonSchema\Mapper\Types\IntegerTypeMapper
@@ -10,12 +19,24 @@ services:
 			mappers: tagged(phpstan_json_schema.type_mapper)
 
 	-
-		class: PhpStanJsonSchema\Controller\PropertyCollector
+		class: PhpStanJsonSchema\Mapper\ClassSchemaBuilder
+		arguments:
+			typeMapper: @PhpStanJsonSchema\Mapper\TypeMapperRegistry
+
+	-
+		class: PhpStanJsonSchema\Controller\SchemaCollector
 		tags:
 			- phpstan.collector
 
 	-
+		class: PhpStanJsonSchema\Controller\DirectorySchemaWriter
+		arguments:
+			outputDirectory: %phpstanJsonSchema.outputDirectory%
+
+	-
 		class: PhpStanJsonSchema\Controller\SchemaAggregatorRule
+		arguments:
+			schemaWriter: @PhpStanJsonSchema\Controller\DirectorySchemaWriter
 		tags:
 			- phpstan.rule
 
