@@ -38,7 +38,9 @@ class SchemaExportTest extends TestCase
         $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
 
         $cmd = sprintf(
-            '%s analyse -c %s %s --no-progress',
+            '%s clear-result-cache -c %s && %s analyse -c %s %s --no-progress 2>&1',
+            $phpstanBin,
+            $configFile,
             $phpstanBin,
             $configFile,
             $phpFile

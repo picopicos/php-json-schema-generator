@@ -35,10 +35,10 @@ services:
 
 	-
 		class: PhpStanJsonSchema\Rule\SchemaAggregatorRule
+		arguments:
+			schemaWriter: @PhpStanJsonSchema\Writer\DirectorySchemaWriter
 		tags:
 			- phpstan.rule
 
-	-
-		class: PhpStanJsonSchema\Rule\SchemaAggregatorRule
-		tags:
-			- phpstan.rules.rule
+rules:
+    - PhpStanJsonSchema\Rule\SchemaAggregatorRule
