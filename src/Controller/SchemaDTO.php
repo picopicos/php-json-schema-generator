@@ -65,7 +65,11 @@ final readonly class SchemaDTO
             throw new InvalidArgumentException('Invalid base64 encoded schema.');
         }
 
-        $schema = unserialize($serializedSchema);
+        $schema = unserialize($serializedSchema, ['allowed_classes' => [
+            \PhpStanJsonSchema\Schema\IntegerSchema::class,
+            \PhpStanJsonSchema\Schema\ObjectSchema::class,
+            \PhpStanJsonSchema\Schema\SchemaMetadata::class,
+        ]]);
         if (!$schema instanceof Schema) {
             throw new InvalidArgumentException('Unserialized schema is not an instance of Schema interface.');
         }
