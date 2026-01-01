@@ -12,17 +12,23 @@ class SchemaExportTest extends TestCase
     {
         // Run PHPStan analysis on the fixture
         $cmd = sprintf(
-            '%s/../../vendor/bin/phpstan analyse -c %s/../phpstan.neon %s/../Fixtures/RangeDto.php --error-format=json --no-progress',
+            '%s/../../vendor/bin/phpstan clear-result-cache -c %s/../phpstan.neon && %s/../../vendor/bin/phpstan analyse -c %s/../phpstan.neon %s/../Fixtures/RangeDto.php --error-format=json --no-progress',
+            __DIR__,
+            __DIR__,
             __DIR__,
             __DIR__,
             __DIR__
         );
 
-        $output = shell_exec($cmd);
-        $this->assertIsString($output, 'shell_exec returned null or false');
+        $output = (string) shell_exec($cmd);
+        $jsonStart = strpos($output, '{');
+        if ($jsonStart === false) {
+            $this->fail('No JSON output found. Output: ' . $output);
+        }
+        $jsonContent = substr($output, $jsonStart);
 
         /** @var array{files: array<string, array{messages: list<array{message: string, line: int}>}>} $json */
-        $json = json_decode($output, true);
+        $json = json_decode($jsonContent, true);
 
         $found = false;
         foreach ($json['files'] as $file => $errors) {

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhpStanJsonSchema\Collector;
+namespace PhpStanJsonSchema\Controller;
 
 use PhpParser\Node;
 use PHPStan\Analyser\Scope;

@@ -1,6 +1,6 @@
 services:
 	-
-		class: PhpStanJsonSchema\Mapper\IntegerTypeMapper
+		class: PhpStanJsonSchema\Mapper\Types\IntegerTypeMapper
 		tags:
 			- phpstan_json_schema.type_mapper
 
@@ -10,11 +10,14 @@ services:
 			mappers: tagged(phpstan_json_schema.type_mapper)
 
 	-
-		class: PhpStanJsonSchema\Collector\PropertyCollector
+		class: PhpStanJsonSchema\Controller\PropertyCollector
 		tags:
 			- phpstan.collector
 
 	-
-		class: PhpStanJsonSchema\Rule\SchemaAggregatorRule
+		class: PhpStanJsonSchema\Controller\SchemaAggregatorRule
 		tags:
-			- phpstan.rules.rule
+			- phpstan.rule
+
+rules:
+    - PhpStanJsonSchema\Controller\SchemaAggregatorRule

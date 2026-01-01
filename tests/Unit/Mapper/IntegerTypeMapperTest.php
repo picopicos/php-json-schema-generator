@@ -7,7 +7,7 @@ namespace Tests\Unit\Mapper;
 use PHPStan\Type\IntegerRangeType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\StringType;
-use PhpStanJsonSchema\Mapper\IntegerTypeMapper;
+use PhpStanJsonSchema\Mapper\Types\IntegerTypeMapper;
 use PhpStanJsonSchema\Schema\IntegerSchema;
 use PHPUnit\Framework\TestCase;
 
