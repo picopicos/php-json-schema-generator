@@ -9,6 +9,7 @@ final readonly class VisibilityDto
     public function __construct(
         public int $publicProperty,
         protected int $protectedProperty,
+        /** @phpstan-ignore property.onlyWritten */
         private int $privateProperty,
     ) {}
 }

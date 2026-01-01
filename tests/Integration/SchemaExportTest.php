@@ -32,7 +32,7 @@ class SchemaExportTest extends TestCase
      * @param class-string $className
      */
     #[DataProvider('provideFixtures')]
-    public function testSchemaGeneration(string $phpFile, string $jsonFile, string $className): void
+    public function testSchemaGeneration(string $phpFile, string $jsonFile, string $className, bool $expectFailure = false): void
     {
         $configFile = $this->createTestConfig();
         $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
@@ -51,6 +51,13 @@ class SchemaExportTest extends TestCase
         $expectedFilename = str_replace('\\', '.', $className) . '.json';
         $actualFile = $this->outputDir . '/' . $expectedFilename;
 
+        if ($expectFailure) {
+            $this->assertNotEquals(0, $resultCode, 'PHPStan should fail: ' . implode("\n", $output));
+            $this->assertFileDoesNotExist($actualFile, 'Schema file should not be generated on failure');
+            return;
+        }
+
+        $this->assertEquals(0, $resultCode, 'PHPStan failed: ' . implode("\n", $output));
         $this->assertFileExists($actualFile, 'Schema file was not generated: ' . implode("\n", $output));
         $actualJson = (string) file_get_contents($actualFile);
         $expectedJson = (string) file_get_contents($jsonFile);
@@ -66,7 +73,7 @@ class SchemaExportTest extends TestCase
     }
 
     /**
-     * @return iterable<string, array{phpFile: string, jsonFile: string, className: class-string}>
+     * @return iterable<string, array{phpFile: string, jsonFile: string, className: class-string, expectFailure?: bool}>
      */
     public static function provideFixtures(): iterable
     {
@@ -89,10 +96,13 @@ class SchemaExportTest extends TestCase
             /** @var class-string $className */
             $className = 'Tests\\Integration\\Fixtures' . str_replace('/', '\\', $relativePath);
 
+            $expectFailure = str_contains($className, 'UnsupportedDto');
+
             yield $className => [
                 'phpFile' => $phpFile,
                 'jsonFile' => $jsonFile,
                 'className' => $className,
+                'expectFailure' => $expectFailure,
             ];
         }
     }
