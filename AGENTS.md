@@ -2,6 +2,7 @@
 
 ## Project Documentation
 - **Architecture**: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- **Specification**: [docs/SPECIFICATION.md](docs/SPECIFICATION.md) (Feature Checklist & Configuration)
 - **Roadmap**: [GitHub Milestone 0.1.0](https://github.com/picopicos/phpstan-json-schema/milestone/1)
 
 ## Project Mission
@@ -46,6 +47,7 @@ Build a library that generates JSON Schema compatible with OpenAPI 3.1 directly 
 2.  **Metadata**: Set **Assignee** (@me), **Labels** (e.g., `enhancement`, `documentation`), and **Milestone** (e.g., `0.1.0`) for every PR.
 3.  **Synchronization**: Every time you push new changes to an existing PR, update the PR description using `gh pr edit` to reflect the latest state (Purpose, Details, Verification).
 4.  **Context**: Ensure the PR body clearly explains the "Why" (Purpose) and "How" (Details).
+5.  **Specification Update**: When implementing a feature, you MUST check off the corresponding item in `docs/SPECIFICATION.md` and include this change in your commit. If a new feature is not in the list, add it first.
 
 ## Documentation Maintenance
 - **Keep Updated**: Sync `docs/ARCHITECTURE.md` with code changes.

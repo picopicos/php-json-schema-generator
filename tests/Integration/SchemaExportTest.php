@@ -4,50 +4,137 @@ declare(strict_types=1);
 
 namespace Tests\Integration;
 
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
+use Tests\Traits\JsonSchemaAssertions;
 
 class SchemaExportTest extends TestCase
 {
-    public function testExportsIntegerRange(): void
+    use JsonSchemaAssertions;
+
+    private string $outputDir;
+
+    protected function setUp(): void
     {
-        // Run PHPStan analysis on the fixture
+        $this->outputDir = sys_get_temp_dir() . '/phpstan-json-schema-test-' . uniqid();
+        if (!mkdir($this->outputDir, 0o777, true) && !is_dir($this->outputDir)) {
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $this->outputDir));
+        }
+    }
+
+    protected function tearDown(): void
+    {
+        $this->removeDirectory($this->outputDir);
+    }
+
+    /**
+     * @param class-string $className
+     */
+    #[DataProvider('provideFixtures')]
+    public function testSchemaGeneration(string $phpFile, string $jsonFile, string $className, bool $expectFailure = false): void
+    {
+        $configFile = $this->createTestConfig();
+        $phpstanBin = __DIR__ . '/../../vendor/bin/phpstan';
+
         $cmd = sprintf(
-            '%s/../../vendor/bin/phpstan clear-result-cache -c %s/../phpstan.neon && %s/../../vendor/bin/phpstan analyse -c %s/../phpstan.neon %s/../Fixtures/RangeDto.php --error-format=json --no-progress',
-            __DIR__,
-            __DIR__,
-            __DIR__,
-            __DIR__,
-            __DIR__
+            '%s clear-result-cache -c %s && %s analyse -c %s %s --no-progress 2>&1',
+            $phpstanBin,
+            $configFile,
+            $phpstanBin,
+            $configFile,
+            $phpFile
         );
 
-        $output = (string) shell_exec($cmd);
-        $jsonStart = strpos($output, '{');
-        if ($jsonStart === false) {
-            $this->fail('No JSON output found. Output: ' . $output);
+        exec($cmd, $output, $resultCode);
+
+        $expectedFilename = str_replace('\\', '.', $className) . '.json';
+        $actualFile = $this->outputDir . '/' . $expectedFilename;
+
+        if ($expectFailure) {
+            $this->assertNotEquals(0, $resultCode, 'PHPStan should fail: ' . implode("\n", $output));
+            $this->assertFileDoesNotExist($actualFile, 'Schema file should not be generated on failure');
+            return;
         }
-        $jsonContent = substr($output, $jsonStart);
 
-        /** @var array{files: array<string, array{messages: list<array{message: string, line: int}>}>} $json */
-        $json = json_decode($jsonContent, true);
+        $this->assertEquals(0, $resultCode, 'PHPStan failed: ' . implode("\n", $output));
+        $this->assertFileExists($actualFile, 'Schema file was not generated: ' . implode("\n", $output));
+        $actualJson = (string) file_get_contents($actualFile);
+        $expectedJson = (string) file_get_contents($jsonFile);
 
-        $found = false;
-        foreach ($json['files'] as $file => $errors) {
-            foreach ($errors['messages'] as $error) {
-                if (str_starts_with($error['message'], 'SCHEMA_EXPORT:')) {
-                    /** @var array{className: string, propertyName: string, schema: array{minimum: int, maximum: int}} $data */
-                    $data = json_decode(substr($error['message'], 14), true);
-                    if ($data['propertyName'] === 'rating') {
-                        $this->assertArrayHasKey('minimum', $data['schema']);
-                        $this->assertArrayHasKey('maximum', $data['schema']);
+        $actualData = json_decode($actualJson, true, 512, JSON_THROW_ON_ERROR);
+        $expectedData = json_decode($expectedJson, true, 512, JSON_THROW_ON_ERROR);
 
-                        $this->assertEquals(1, $data['schema']['minimum']);
-                        $this->assertEquals(10, $data['schema']['maximum']);
-                        $found = true;
-                    }
-                }
+        // Verify JSON Schema validity
+        $this->assertValidJsonSchema($actualJson);
+
+        // Verify exact structure match
+        $this->assertSame($expectedData, $actualData);
+    }
+
+    /**
+     * @return iterable<string, array{phpFile: string, jsonFile: string, className: class-string, expectFailure?: bool}>
+     */
+    public static function provideFixtures(): iterable
+    {
+        $fixtureDir = __DIR__ . '/Fixtures';
+        $files = glob($fixtureDir . '/*/*.php');
+
+        if ($files === false) {
+            return;
+        }
+
+        foreach ($files as $phpFile) {
+            $jsonFile = str_replace('.php', '.json', $phpFile);
+            if (!file_exists($jsonFile)) {
+                continue;
             }
-        }
 
-        $this->assertTrue($found, 'Could not find exported schema data for RangeDto::$rating. Output: ' . $output);
+            // Derive class name from path: Integration/Fixtures/Integer/RangeDto.php
+            // -> Tests\Integration\Fixtures\Integer\RangeDto
+            $relativePath = str_replace([__DIR__ . '/Fixtures', '.php'], ['', ''], $phpFile);
+            /** @var class-string $className */
+            $className = 'Tests\\Integration\\Fixtures' . str_replace('/', '\\', $relativePath);
+
+            $expectFailure = str_contains($className, 'UnsupportedDto');
+
+            yield $className => [
+                'phpFile' => $phpFile,
+                'jsonFile' => $jsonFile,
+                'className' => $className,
+                'expectFailure' => $expectFailure,
+            ];
+        }
+    }
+
+    private function createTestConfig(): string
+    {
+        $configPath = $this->outputDir . '/test-config.neon';
+        $extensionPath = realpath(__DIR__ . '/../../extension.neon');
+        $content = <<<NEON
+                        includes:
+                        	- phar://phpstan.phar/conf/bleedingEdge.neon
+                        	- {$extensionPath}
+
+                        parameters:
+                        	level: max
+                        	phpstanJsonSchema:
+                        		outputDirectory: {$this->outputDir}
+            NEON;
+        file_put_contents($configPath, $content);
+
+        return $configPath;
+    }
+
+    private function removeDirectory(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+        $files = array_diff((array) scandir($dir), ['.', '..']);
+        foreach ($files as $file) {
+            (is_dir("$dir/$file")) ? $this->removeDirectory("$dir/$file") : unlink("$dir/$file");
+        }
+        rmdir($dir);
     }
 }

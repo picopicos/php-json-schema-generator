@@ -8,13 +8,17 @@ use PhpParser\Node;
 use PHPStan\Analyser\Scope;
 use PHPStan\Node\CollectedDataNode;
 use PHPStan\Rules\Rule;
-use PHPStan\Rules\RuleErrorBuilder;
 
 /**
+ * @phpstan-import-type schema_data from SchemaCollector
  * @implements Rule<CollectedDataNode>
  */
 class SchemaAggregatorRule implements Rule
 {
+    public function __construct(
+        private readonly SchemaWriter $schemaWriter
+    ) {}
+
     public function getNodeType(): string
     {
         return CollectedDataNode::class;
@@ -22,20 +26,15 @@ class SchemaAggregatorRule implements Rule
 
     public function processNode(Node $node, Scope $scope): array
     {
-        $collectedData = $node->get(PropertyCollector::class);
-        $errors = [];
+        /** @var array<string, list<schema_data>> $collectedData */
+        $collectedData = $node->get(SchemaCollector::class);
 
-        foreach ($collectedData as $file => $properties) {
-            foreach ($properties as $propertyData) {
-                // For MVP: Dump collected data as a custom error message
-                $json = json_encode($propertyData);
-                $errors[] = RuleErrorBuilder::message("SCHEMA_EXPORT:$json")
-                    ->file($file)
-                    ->identifier('phpSchema.export')
-                    ->build();
+        foreach ($collectedData as $fileSchemas) {
+            foreach ($fileSchemas as $schemaData) {
+                $this->schemaWriter->write($schemaData['class_name'], $schemaData['schema']);
             }
         }
 
-        return $errors;
+        return [];
     }
 }
