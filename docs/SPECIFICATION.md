@@ -4,119 +4,141 @@ This document serves as the **Single Source of Truth** for the functional requir
 
 ---
 
-## 1. Functional Specifications (User Features)
+## 0. Target Dialect & Compatibility Strategy
 
-### 1.1 Primitive & Scalar Types
-- [x] **Integer**: `int` -> `{"type": "integer"}
-- [ ] **Float**: `float` -> `{"type": "number"}
-- [ ] **String**: `string` -> `{"type": "string"}
-- [ ] **Boolean**: `bool`, `true`, `false` -> `{"type": "boolean"}`
-    - `true`, `false` literal types should map to const or enum if specific.
-- [ ] **Null**: `null` -> `{"type": "null"}
-- [ ] **Mixed**: `mixed` -> `{}` (Empty schema allowing anything)
-- [ ] **Void/Never**: `void`, `never` -> Should probably be ignored or result in empty schema depending on context.
-- [ ] **Scalar**: `scalar` -> `{"type": ["string", "number", "boolean"]}
-- [ ] **Number**: `number` -> `{"type": "number"}` (int | float)
+Since JSON Schema and OpenAPI have different capabilities, the generator must support configurable dialects.
 
-### 1.2 Integer Constraints & Ranges
-Detailed mapping for PHPStan's integer range types.
-- [x] **Range**: `int<min, max>` -> `minimum`, `maximum`
-- [ ] **Min**: `int<min, max>` (one side) -> `minimum` or `maximum`
-- [ ] **Positive**: `positive-int` (> 0) -> `type: integer`, `minimum: 1`
-- [ ] **Negative**: `negative-int` (< 0) -> `type: integer`, `maximum: -1`
-- [ ] **Non-Positive**: `non-positive-int` (<= 0) -> `type: integer`, `maximum: 0`
-- [ ] **Non-Negative**: `non-negative-int` (>= 0) -> `type: integer`, `minimum: 0`
-- [ ] **Int Mask**: `int-mask<...>` -> `enum` (List of possible calculated integer values) - *Low Priority*
+### 0.1 Dialects
+- **JSON Schema 2020-12** (Default): Full feature set (`prefixItems`, `$defs`, `unevaluatedProperties`).
+- **OpenAPI 3.1**: Mostly compatible with 2020-12.
+- **OpenAPI 3.0**: Restricted feature set (`nullable: true`, no `prefixItems`, `items` must be object).
 
-### 1.3 String Constraints
-- [ ] **Non-Empty**: `non-empty-string` -> `minLength: 1`
-- [ ] **Numeric String**: `numeric-string` -> `type: string`, `pattern: "^[+-]?\\d+(\\.\\d+)?$"` (or similar regex)
-- [ ] **Class String**: `class-string<T>` -> `type: string` (Consider adding custom format like `class-reference`)
-- [ ] **Literal**: `string` literal (e.g. `'active'`) -> `const: 'active'` or `enum: ['active']`
-- [ ] **Non-Falsy**: `non-falsy-string` -> `minLength: 1` (Excludes "0" and "")
-
-### 1.4 Arrays & Lists
-Distinguishing between JSON Arrays (List) and Objects (Map) is crucial.
-- [ ] **List**: `list<T>` -> `{"type": "array", "items": {...}}` (Sequential, 0-indexed)
-- [ ] **General Array**: `array<T>` -> `{"type": "array", "items": {...}}`
-    - *Note*: PHPStan treats `array<T>` as map-capable, but JSON Schema usually maps explicit keys to objects. If strictly a map, see below.
-- [ ] **Map (Associative)**: `array<string, T>` -> `{"type": "object", "additionalProperties": {...}}`
-- [ ] **Array Shape (Sealed)**: `array{foo: int}` -> `{"type": "object", "properties": {"foo": ...}, "additionalProperties": false}`
-- [ ] **Array Shape (Unsealed)**: `array{foo: int, ...}` -> `{"type": "object", "properties": {"foo": ...}, "additionalProperties": true}` (or schema for rest type)
-- [ ] **Optional Keys**: `array{foo?: int}` -> Property "foo" excluded from `required`.
-- [ ] **Non-Empty**: `non-empty-array`, `non-empty-list` -> `minItems: 1`
-
-### 1.5 Objects & Classes
-- [x] **DTO Class**: PHP Class -> `{"type": "object", "properties": ...}`
-- [x] **Visibility**: Only `public` properties are exported (Private/Protected are ignored).
-- [ ] **Nested Objects**: Property type is another Class -> Nested schema structure.
-- [ ] **Recursive Reference**: Class A -> Class B -> Class A. Must use `{"$ref": "..."}` to prevent infinite recursion.
-- [ ] **Generics**: `Response<User>` -> Resolved to concrete schema `Response` embedding `User`.
-
-### 1.6 Logic & Advanced Types
-- [ ] **Union**: `A|B` -> `anyOf: [SchemaA, SchemaB]`
-- [ ] **Nullable**: `?T` (T|null) -> `type: ["...", "null"]` (Key remains in `required`)
-- [ ] **Intersection**: `A&B` -> `allOf: [SchemaA, SchemaB]`
-- [ ] **Value-of**: `value-of<CONST_ARRAY>` -> `enum` extraction from constant values.
-- [ ] **Key-of**: `key-of<CONST_ARRAY>` -> `enum` extraction from constant keys.
-- [ ] **Backed Enum**: `enum Status: string` -> `type: string`, `enum: [...]`
-- [ ] **Unit Enum**: `enum Color` -> `type: string`, `enum: ['Red', 'Blue']` (Case names)
-
-### 1.7 DateTime Support
-- [ ] **DateTimeInterface**: `DateTime`, `DateTimeImmutable`, `Carbon` -> `{"type": "string", "format": "date-time"}`
-
-### 1.8 Metadata & Attributes
-- [ ] **Description (PHPDoc)**: `/** @description ... */` -> `description`
-- [ ] **Description (Attribute)**: `#[Description('...')]` -> `description`
-- [ ] **Deprecated**: `@deprecated` or `#[Deprecated]` -> `deprecated: true`
-- [ ] **Example**: `#[Example(...)]` -> `examples`
-- [ ] **Title**: Class name or `#[Title]` -> `title`
+### 0.2 Feature Capability Matrix
+| Feature | JSON Schema 2020-12 | OpenAPI 3.1 | OpenAPI 3.0 |
+| :--- | :--- | :--- | :--- |
+| **Nullable** | `type: ["string", "null"]` | `type: ["string", "null"]` | `type: "string", nullable: true` |
+| **Tuple** | `prefixItems: [...]` | `prefixItems: [...]` | **Not Supported** (Fallback to `oneOf` or loose `items`) |
+| **Const** | `const: "value"` | `const: "value"` | `enum: ["value"]` |
+| **Intersection** | `unevaluatedProperties: false` | `unevaluatedProperties: false` | **Broken** with `additionalProperties: false` |
 
 ---
 
-## 2. Implementation & Quality Design (Engineering Roadmap)
+## 1. Type Mapping Specification
 
-### 2.1 Architecture & Scalability
-- [x] **Phase Separation**:
-    - **Collector**: Analyzes code and serializes `Schema` objects (using `SchemaDTO`).
-    - **Rule**: Aggregates data and triggers `SchemaWriter`.
-- [x] **DTO Encapsulation**: `SchemaDTO` handles serialization logic (`base64` + `unserialize` with `allowed_classes`) to prevent object injection risks.
-- [ ] **Reference Strategy ($ref)**:
-    - **Issue**: Current implementation implies inline nesting. Large graphs will balloon file size, and recursion will crash.
-    - **Solution**: Implement a `SchemaRegistry` or `RefStrategy` to determine if a schema should be inlined or referenced via `{"$ref": "#/definitions/..."}` or `{"$ref": "./OtherFile.json"}`.
-- [ ] **Memory Management**:
-    - **Issue**: Collecting all schemas in memory before writing might exceed RAM on massive projects.
-    - **Solution**: Investigate incremental writing or streaming if `CollectedDataNode` becomes a bottleneck.
+### 1.1 Primitive & Scalar Types
+- [x] **Integer**: `int` -> `{"type": "integer"}"
+- [ ] **Float**: `float` -> `{"type": "number"}"
+- [ ] **String**: `string` -> `{"type": "string"}"
+- [ ] **Boolean**: `bool` -> `{"type": "boolean"}"
+    - Literal `true`/`false` -> `const: true` / `const: false` (or `enum` for OpenAPI 3.0).
+- [ ] **Null**: `null` -> `{"type": "null"}"
+- [ ] **Mixed**: `mixed` -> `{}` (Empty schema allowing anything).
+- [ ] **Void/Never**: `void`, `never` -> Treated as non-existent property (ignored).
+- [ ] **Scalar**: `scalar` -> `{"type": ["string", "number", "boolean"]}"
+- [ ] **Number**: `number` -> `{"type": "number"}` (int | float)
 
-### 2.2 Configuration & DX (extension.neon)
-The configuration is handled via PHPStan's parameter system. Users override specific keys in their `phpstan.neon`.
+### 1.2 Integer & Number Constraints
+- [x] **Range**: `int<min, max>` -> `minimum`, `maximum`
+- [ ] **Positive**: `positive-int` -> `minimum: 1`
+- [ ] **Negative**: `negative-int` -> `maximum: -1`
+- [ ] **Non-Positive**: `non-positive-int` -> `maximum: 0`
+- [ ] **Non-Negative**: `non-negative-int` -> `minimum: 0`
+- [ ] **Literal**: `1|2|3` -> `enum: [1, 2, 3]`
+- [ ] **Non-Zero**: `non-zero-int` -> `not: {const: 0}` (or ignored in loose mode).
 
-- [ ] **Configuration Schema**:
-    - `outputDirectory`: (Existing) Path to write files.
-    - `refStrategy`: `inline` | `file_system` | `definitions`
-    - `format`: `json` | `yaml` (Future)
-    - `prettyPrint`: `boolean` (Default: true)
-    - `includePrivate`: `boolean` (Default: false) - Option to expose private props if explicitly requested.
-- [ ] **Contextual Error Reporting**:
-    - Use `RuleErrorBuilder` to point to specific lines (e.g., "Property $foo uses unsupported type 'resource'").
+### 1.3 String Constraints
+- [ ] **Non-Empty**: `non-empty-string` -> `minLength: 1`
+- [ ] **Non-Falsy**: `non-falsy-string` -> `allOf: [{minLength: 1}, {not: {const: "0"}}]` (Strict mode only).
+- [ ] **Numeric String**: `numeric-string` -> `type: string`, `pattern: "^[+-]?\\d+(\\.\\d+)?$"` (Approximation).
+    - *Note*: This pattern is a lossy approximation of PHP's `is_numeric()`. Validation parity with PHP is **NOT** guaranteed (e.g., `1e10`, `0xFF` might not match).
+- [ ] **Class String**: `class-string<T>` -> `type: "string"` (Optionally format: `class-reference`).
+- [ ] **Literal**: `'active'|'inactive'` -> `enum: ['active', 'inactive']`.
+- [ ] **Pattern**: *Future Scope* (Regex extraction).
+- [ ] **Special Types**: `callable-string`, `lowercase-string`, `literal-string` -> `type: "string"` (Metadata/Comment only).
 
-### 2.3 Security
-- [x] **File Permissions**: Output directory creation restricted to `0755`.
-- [x] **Path Traversal**: Filenames sanitized via `basename()` and regex validation.
-- [x] **Object Injection**: `unserialize()` restricted to specific Schema classes in `SchemaDTO`.
-- [ ] **Denial of Service**: Guard against extremely deep recursion depth during schema generation.
+### 1.4 Arrays, Lists & Iterables
+**Strict Policy**: PHP Arrays are ambiguous. We apply the following decision tree:
 
-### 2.4 Testing Strategy
-- [x] **Integration Testing**: End-to-end tests compiling PHP code and asserting JSON output.
-- [ ] **Unit Testing**: 100% coverage for Mappers (e.g., `IntegerTypeMapper` handles all `int<...>` variants).
-- [ ] **Snapshot Testing**: Use a snapshot tool (e.g., `spatie/phpunit-snapshot-assertions`) for complex JSON outputs to avoid brittle exact-match assertions in code.
-- [ ] **Fixture Coverage**: Add fixtures for every checklist item in Section 1 (Generics, Recursive Classes, Complex Unions, Traits).
+1. **List (`list<T>`)**: -> `{"type": "array", "items": T}` (Sequential, 0-indexed).
+2. **Map (`array<string, T>`)**: -> `{"type": "object", "additionalProperties": T}`.
+3. **Tuple (`array{T1, T2}`)**: -> `{"type": "array", "prefixItems": [T1, T2], "items": false}` (Dialect dependent).
+4. **General Array (`array<T>`)**:
+    - Default: Treat as `List`.
+    - Configurable: `anyOf: [List, Map]` (Safe but complex).
+5. **Array Key (`array<array-key, T>`)**: -> `anyOf: [List, Map]`.
+6. **Iterable (`iterable<K, V>`)**: -> Treated same as `array<K, V>`.
 
-### 2.5 Documentation & Release Preparation
-- [x] **Specification**: This document.
-- [ ] **README**:
-    - Installation (`composer require --dev`).
-    - Configuration guide (`extension.neon`).
-    - Supported Types Matrix.
-- [ ] **CONTRIBUTING**: Guide for adding new `TypeMappers`.
-- [ ] **Changelog**: Setup automated release notes (Release Drafter).
+### 1.5 Objects, Shapes & Classes
+- [x] **DTO Class**: PHP Class -> `{"type": "object", "properties": ...}`
+- [x] **Visibility**: Only `public` properties are exported.
+- [ ] **Object Shape**: `object{foo: int, bar?: string}` -> Treated same as DTO Class (Inline object).
+    - *Required Rule*: Follows array shape semantics. `foo` is required, `bar` is optional.
+- [ ] **Magic Properties**: `@property` tags in PHPDoc -> Included in `properties` (Requires ClassReflection analysis).
+- [ ] **Readonly**: `readonly` properties -> `readOnly: true`.
+- [ ] **Generics**: `Response<User>` -> Schema name mangled to `Response_User` or `ResponseOfUser`.
+
+### 1.6 Logic & Advanced Types
+- [ ] **Union (`A|B`)**:
+    - **Nullable**: `T|null` -> `type: ["T", "null"]` (or `nullable: true`).
+    - **General**: `anyOf: [A, B]`. (`oneOf` is strictly better but computationally expensive to prove disjointness).
+- [ ] **Intersection (`A&B`)**:
+    - **Object Merging**: If A and B are both objects, **MERGE** properties into a single schema instead of `allOf`.
+    - *Reason*: `allOf` with `additionalProperties: false` causes validation failure (A rejects B's props).
+- [ ] **Type Alias**: `@phpstan-type` -> Resolves to the underlying type (Inline). *Future: Export as definition*.
+- [ ] **Key-of / Value-of**: `key-of<T>` / `value-of<T>` -> Resolved to `enum`.
+
+---
+
+## 2. Architecture & Engineering Roadmap
+
+### 2.1 Entry Points & Output Strategy
+- [x] **Primary Entry Point**: `phpstan analyse` command runs the Collector/Rule.
+    - *Future*: Standalone CLI or API invocation.
+- [ ] **Target Selection**:
+    - Currently: All classes in analysed paths.
+    - Planned: Filter by Attribute `#[JsonSchema]` or namespace configuration.
+- [x] **File Naming**: `App\Dto\User` -> `App.Dto.User.json`.
+
+### 2.2 Reference Management ($ref)
+- [ ] **Recursion Detection**:
+    - Maintain a stack of types currently being resolved.
+    - If recursion detected: Stop inline expansion, emit `{"ref": "..."}`.
+- [ ] **Definition ID**:
+    - Inline: `#/definitions/ClassName`
+    - External: `ClassName.json`
+    - Strategy: Configurable (`inline_defs` vs `file_system`).
+
+### 2.3 Required vs Nullable Policy
+JSON Schema distinguishes "missing key" from "null value".
+- **Required**: Property must be present.
+- **Nullable**: Property value can be null.
+
+**Policy**:
+1. **Required**: By default, all typed properties are `required` unless:
+    - It is an optional array key (`key?: T`).
+    - It has a default value (e.g., `public int $id = 0;`).
+    - *Config option*: `required_policy: strict` (everything required) vs `loose`.
+2. **Nullable**: `?T` does **NOT** remove from `required`. It maps to `type: ["...", "null"]`.
+
+### 2.4 Error Handling
+- [x] **Fail Loudly**: Unsupported types throw exceptions (catchable in tests).
+- [ ] **Unsupported Policy**: Configurable (`error`, `warn`, `ignore`, `string_fallback`).
+    - `callable` -> `ignore` (remove from properties).
+    - `resource` -> `ignore`.
+
+### 2.5 Security
+- [x] **File Permissions**: Output directory `0755`.
+- [x] **Path Traversal**: Filenames sanitized via `basename()`.
+- [x] **Object Injection**: `unserialize()` allowed classes restricted.
+
+### 2.6 Testing
+- [x] **Integration Testing**: Verify JSON output against fixtures.
+- [ ] **Snapshot Testing**: Use snapshots for complex schemas.
+- [ ] **Dialect Testing**: Verify outputs against multiple dialects (2020-12 vs OpenAPI 3.0).
+
+---
+
+## 3. Non-Goals (Out of Scope)
+- **Runtime JSON Shape**: We do not respect `JsonSerializable` or `__debugInfo`. This tool generates schemas based on **static PHP Types**, not runtime serialization behavior.
+- **Serializer Metadata**: We do not parse `@Serializer\Groups` or `@JsonProperty` (JMS/Symfony). This tool generates schemas based on **PHP Types**, not serialization rules.
+- **Runtime Validation**: This tool generates schemas; it does not validate data at runtime.

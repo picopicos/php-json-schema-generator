@@ -25,8 +25,10 @@ final readonly class ClassSchemaBuilder implements ClassSchemaBuilderInterface
         $properties = [];
         $required = [];
 
-        // Use native reflection to iterate over properties, then upgrade to PHPStan reflection for types
-        // This ensures we capture all properties relevant to the class structure
+        // Use native reflection to iterate over properties to ensure we only capture
+        // physical properties actually defined in the class code.
+        // PHPStan's getProperties() might include virtual properties (@property tags)
+        // which we don't want to support implicitly without explicit handling logic.
         foreach ($classReflection->getNativeReflection()->getProperties() as $nativeProperty) {
             $propertyName = $nativeProperty->getName();
 
