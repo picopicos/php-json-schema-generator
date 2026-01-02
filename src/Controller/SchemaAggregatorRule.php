@@ -10,7 +10,7 @@ use PHPStan\Node\CollectedDataNode;
 use PHPStan\Rules\Rule;
 
 /**
- * @phpstan-import-type schema_data from SchemaDTO
+ * @phpstan-import-type schema_data from SchemaCollector
  * @implements Rule<CollectedDataNode>
  */
 class SchemaAggregatorRule implements Rule
@@ -31,8 +31,7 @@ class SchemaAggregatorRule implements Rule
 
         foreach ($collectedData as $fileSchemas) {
             foreach ($fileSchemas as $schemaData) {
-                $dto = SchemaDTO::fromArray($schemaData);
-                $this->schemaWriter->write($dto->className, $dto->schema);
+                $this->schemaWriter->write($schemaData['class_name'], $schemaData['schema']);
             }
         }
 

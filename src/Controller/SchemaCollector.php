@@ -11,7 +11,10 @@ use PHPStan\Node\InClassNode;
 use PhpStanJsonSchema\Mapper\ClassSchemaBuilderInterface;
 
 /**
- * @phpstan-import-type schema_data from SchemaDTO
+ * @phpstan-type schema_data array{
+ *     class_name: class-string,
+ *     schema: array<string, mixed>
+ * }
  * @implements Collector<InClassNode, schema_data>
  */
 class SchemaCollector implements Collector
@@ -39,6 +42,9 @@ class SchemaCollector implements Collector
 
         $schema = $this->schemaBuilder->build($classReflection, $scope);
 
-        return (new SchemaDTO($classReflection->getName(), $schema))->toArray();
+        return [
+            'class_name' => $classReflection->getName(),
+            'schema' => $schema->jsonSerialize(),
+        ];
     }
 }

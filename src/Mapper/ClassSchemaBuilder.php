@@ -7,7 +7,6 @@ namespace PhpStanJsonSchema\Mapper;
 use InvalidArgumentException;
 use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
-use PhpStanJsonSchema\Exception\UnsupportedTypeException;
 use PhpStanJsonSchema\Schema\ObjectSchema;
 use PhpStanJsonSchema\Schema\SchemaMetadata;
 

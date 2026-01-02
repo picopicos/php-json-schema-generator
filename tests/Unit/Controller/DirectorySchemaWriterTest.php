@@ -9,6 +9,7 @@ use PhpStanJsonSchema\Schema\IntegerSchema;
 use PhpStanJsonSchema\Schema\SchemaMetadata;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
+use stdClass;
 
 class DirectorySchemaWriterTest extends TestCase
 {
@@ -31,9 +32,9 @@ class DirectorySchemaWriterTest extends TestCase
         $writer = new DirectorySchemaWriter($this->outputDir);
         $schema = new IntegerSchema(new SchemaMetadata());
 
-        $writer->write('App\Dto\User', $schema);
+        $writer->write(stdClass::class, $schema->jsonSerialize());
 
-        $expectedPath = $this->outputDir . '/App.Dto.User.json';
+        $expectedPath = $this->outputDir . '/stdClass.json';
         $this->assertFileExists($expectedPath);
     }
 
@@ -45,7 +46,8 @@ class DirectorySchemaWriterTest extends TestCase
         $this->expectException(RuntimeException::class);
         $this->expectExceptionMessage('Invalid class name for file generation');
 
-        $writer->write('App/../Secret', $schema);
+        /** @phpstan-ignore argument.type */
+        $writer->write('App/../Secret', $schema->jsonSerialize());
     }
 
     private function removeDirectory(string $dir): void

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhpStanJsonSchema\Controller;
 
-use PhpStanJsonSchema\Schema\Schema;
 use RuntimeException;
 
 final readonly class DirectorySchemaWriter implements SchemaWriter
@@ -13,7 +12,7 @@ final readonly class DirectorySchemaWriter implements SchemaWriter
         private string $outputDirectory
     ) {}
 
-    public function write(string $className, Schema $schema): void
+    public function write(string $className, array $schema): void
     {
         $this->ensureDirectoryExists();
 
