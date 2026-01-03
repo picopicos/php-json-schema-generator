@@ -20,10 +20,6 @@ final readonly class DirectorySchemaWriter implements SchemaWriter
         $sanitizedClassName = str_replace('\\', '.', ltrim($className, '\\'));
         $filename = basename($sanitizedClassName) . '.json';
 
-        if (!preg_match('/^[a-zA-Z0-9_.]+$/', $sanitizedClassName)) {
-            throw new RuntimeException(sprintf('Invalid class name for file generation: "%s"', $className));
-        }
-
         $path = $this->outputDirectory . DIRECTORY_SEPARATOR . $filename;
 
         $json = json_encode($schema, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);

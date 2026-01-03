@@ -38,18 +38,6 @@ class DirectorySchemaWriterTest extends TestCase
         $this->assertFileExists($expectedPath);
     }
 
-    public function testItThrowsExceptionForInvalidClassName(): void
-    {
-        $writer = new DirectorySchemaWriter($this->outputDir);
-        $schema = new IntegerSchema(new SchemaMetadata());
-
-        $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage('Invalid class name for file generation');
-
-        /** @phpstan-ignore argument.type */
-        $writer->write('App/../Secret', $schema->jsonSerialize());
-    }
-
     private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {

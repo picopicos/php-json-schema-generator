@@ -1,0 +1,15 @@
+{
+    "type": "object",
+    "properties": {
+        "requiredInfo": {
+            "type": "integer"
+        },
+        "optionalInfo": {
+            "type": "integer"
+        }
+    },
+    "required": [
+        "requiredInfo"
+    ],
+    "additionalProperties": false
+}

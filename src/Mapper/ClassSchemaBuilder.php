@@ -26,7 +26,7 @@ final readonly class ClassSchemaBuilder implements ClassSchemaBuilderInterface
         $required = [];
 
         // Use native reflection to iterate over properties to ensure we only capture
-        // physical properties actually defined in the class code.
+        // physical properties actually defined in the class code (ignoring @property tags).
         // PHPStan's getProperties() might include virtual properties (@property tags)
         // which we don't want to support implicitly without explicit handling logic.
         foreach ($classReflection->getNativeReflection()->getProperties() as $nativeProperty) {
@@ -47,11 +47,27 @@ final readonly class ClassSchemaBuilder implements ClassSchemaBuilderInterface
             $schema = $this->typeMapper->map($type);
             if ($schema !== null) {
                 $properties[$propertyName] = $schema;
-                // TODO: Implement required/optional logic based on:
-                // 1. Initialized properties (has default value) -> Optional
-                // 2. Nullable types -> Required but can be null (unless uninitialized)
-                // 3. Strict typed uninitialized -> Required
-                $required[] = $propertyName;
+
+                $isOptional = false;
+                if ($nativeProperty->hasDefaultValue()) {
+                    $isOptional = true;
+                } elseif ($nativeProperty->isPromoted()) {
+                    $constructor = $classReflection->getNativeReflection()->getConstructor();
+                    if ($constructor !== null) {
+                        foreach ($constructor->getParameters() as $parameter) {
+                            if ($parameter->getName() === $propertyName) {
+                                if ($parameter->isDefaultValueAvailable()) {
+                                    $isOptional = true;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (!$isOptional) {
+                    $required[] = $propertyName;
+                }
             }
         }
 
